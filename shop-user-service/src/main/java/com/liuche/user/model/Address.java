@@ -1,22 +1,22 @@
 package com.liuche.user.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.io.Serializable;
 import java.util.Date;
+
 import lombok.Data;
 
 /**
  * 电商-公司收发货地址表
+ *
  * @TableName address
  */
-@TableName(value ="address")
+@TableName(value = "address")
 @Data
 public class Address implements Serializable {
     /**
-     * 
+     *
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -70,73 +70,23 @@ public class Address implements Serializable {
     private String detail_address;
 
     /**
-     * 
+     * 创建时间
      */
     @TableField(value = "create_time")
-    private Date create_time;
+    private Date createTime;
+
+    /**
+     * 修改时间
+     */
+    @TableField(value = "update_time")
+    private Date updateTime;
+    /**
+     * 是否已删除
+     */
+    @TableField(value = "is_delete")
+    @TableLogic
+    private int isDelete;
 
     @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        Address other = (Address) that;
-        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getUser_id() == null ? other.getUser_id() == null : this.getUser_id().equals(other.getUser_id()))
-            && (this.getDefault_status() == null ? other.getDefault_status() == null : this.getDefault_status().equals(other.getDefault_status()))
-            && (this.getReceive_name() == null ? other.getReceive_name() == null : this.getReceive_name().equals(other.getReceive_name()))
-            && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
-            && (this.getProvince() == null ? other.getProvince() == null : this.getProvince().equals(other.getProvince()))
-            && (this.getCity() == null ? other.getCity() == null : this.getCity().equals(other.getCity()))
-            && (this.getRegion() == null ? other.getRegion() == null : this.getRegion().equals(other.getRegion()))
-            && (this.getDetail_address() == null ? other.getDetail_address() == null : this.getDetail_address().equals(other.getDetail_address()))
-            && (this.getCreate_time() == null ? other.getCreate_time() == null : this.getCreate_time().equals(other.getCreate_time()));
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getUser_id() == null) ? 0 : getUser_id().hashCode());
-        result = prime * result + ((getDefault_status() == null) ? 0 : getDefault_status().hashCode());
-        result = prime * result + ((getReceive_name() == null) ? 0 : getReceive_name().hashCode());
-        result = prime * result + ((getPhone() == null) ? 0 : getPhone().hashCode());
-        result = prime * result + ((getProvince() == null) ? 0 : getProvince().hashCode());
-        result = prime * result + ((getCity() == null) ? 0 : getCity().hashCode());
-        result = prime * result + ((getRegion() == null) ? 0 : getRegion().hashCode());
-        result = prime * result + ((getDetail_address() == null) ? 0 : getDetail_address().hashCode());
-        result = prime * result + ((getCreate_time() == null) ? 0 : getCreate_time().hashCode());
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", user_id=").append(user_id);
-        sb.append(", default_status=").append(default_status);
-        sb.append(", receive_name=").append(receive_name);
-        sb.append(", phone=").append(phone);
-        sb.append(", province=").append(province);
-        sb.append(", city=").append(city);
-        sb.append(", region=").append(region);
-        sb.append(", detail_address=").append(detail_address);
-        sb.append(", create_time=").append(create_time);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
-    }
+    private static final long serialVersionUID = -6838054996968589069L;
 }
