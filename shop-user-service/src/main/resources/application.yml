@@ -3,6 +3,10 @@ server:
 spring:
   application:
     name: shop-user-service
+  # 避免使用swagger报错问题
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   #数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

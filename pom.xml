@@ -33,6 +33,7 @@
         <lombok.version>1.18.16</lombok.version>
         <commons.lang3.version>3.9</commons.lang3.version>
         <commons.codec.version>1.15</commons.codec.version>
+        <knife4j.swagger.version>3.0.3</knife4j.swagger.version>
         <springfox.boot.starter.version>3.0.0</springfox.boot.starter.version>
         <docker.image.prefix>liuche-cloud</docker.image.prefix>
         <!--跳过单元测试-->
@@ -96,6 +97,18 @@
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-boot-starter</artifactId>
                 <version>${springfox.boot.starter.version}</version>
+            </dependency>
+            <!-- 整合knife4j接口框架 -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-spring-boot-starter</artifactId>
+                <version>${knife4j.swagger.version}</version>
+            </dependency>
+            <!-- ui -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-spring-ui</artifactId>
+                <version>${knife4j.swagger.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
