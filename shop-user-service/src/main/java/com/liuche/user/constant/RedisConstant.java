@@ -8,6 +8,7 @@ package com.liuche.user.constant;
  * @Description: TODO
  */
 public class RedisConstant {
-    public static final String USER_REGISTE_CODE_REDIS_KEY = "user:captcha:code:";
-    public static final int USER_REGISTE_CODE_REDIS_OUTTIME = 60*1000*3; // 三分钟
+    public static final String USER_REGISTER_CODE_REDIS_KEY = "user:captcha:graph:code:";
+    public static final String USER_REGISTER_CODE_MAIL_REDIS_KEY = "user:captcha:mail:code:";
+    public static final int USER_REGISTER_CODE_REDIS_OUT_TIME = 60*1000*3; // 三分钟
 }

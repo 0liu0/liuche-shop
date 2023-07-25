@@ -1,9 +1,12 @@
 package com.liuche.common.util;
 
+import io.swagger.models.auth.In;
+
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
+import java.util.Random;
 
 /**
  * @Author 刘彻
@@ -47,7 +50,11 @@ public class CommonUtil {
         } catch (Exception exception) {
         }
         return null;
+    }
 
+    public static String getRandomCode() {
+        Random random = new Random();
+        return String.valueOf(random.nextInt(900000) + 100000);
     }
 
 }

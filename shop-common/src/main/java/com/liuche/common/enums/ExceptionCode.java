@@ -15,6 +15,7 @@ public enum ExceptionCode {
      * 通用操作码
      */
     OPS_REPEAT(110001, "重复操作"),
+    PARAMS_ERROR(110002, "参数错误"),
     /**
      * 验证码
      */

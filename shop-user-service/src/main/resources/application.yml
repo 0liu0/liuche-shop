@@ -19,6 +19,22 @@ spring:
     host: 192.168.253.17
     port: 6379
     database: 0
+  #邮箱服务配置
+  mail:
+    host: smtp.qq.com # 配置邮件服务器的地址
+    port: 465 # 配置邮件服务器的端口（465或587）
+    username: 706716852@qq.com # 配置用户的账号
+    password: zkftijvagbynbdgg # 配置用户的密码（即申请到的授权码）
+    default-encoding: UTF-8 # 配置默认编码
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory # SSL 连接配置
+        debug: true # 开启 debug，这样方便开发者查看邮件发送日志
+
+
 
 #配置plus打印sql日志
 mybatis-plus:
