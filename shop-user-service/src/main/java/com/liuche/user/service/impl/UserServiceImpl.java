@@ -10,8 +10,10 @@ import com.liuche.common.util.CopyUtil;
 import com.liuche.user.constant.RedisConstant;
 import com.liuche.user.mapper.UserMapper;
 import com.liuche.user.model.User;
+import com.liuche.user.model.request.UserLoginVO;
 import com.liuche.user.model.request.UserRegisterVO;
 import com.liuche.user.service.UserService;
+import com.liuche.common.util.JWTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.Md5Crypt;
 import org.apache.commons.lang3.ObjectUtils;
@@ -20,8 +22,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * @author 70671
@@ -39,13 +39,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public boolean register(UserRegisterVO userRegisterVO, HttpServletRequest request) {
         String code = userRegisterVO.getCode(); // 用户输入的验证码
         String userMail = userRegisterVO.getMail(); // 用户邮箱
-        String captchaKey = CommonUtil.getCaptchaKey(request); // key的前缀
-        String redisCode = stringRedisTemplate.opsForValue().get(RedisConstant.USER_REGISTER_CODE_MAIL_REDIS_KEY+captchaKey).split("_")[0]; // 用户正确的验证码
+        String redisCode = null; // 用户正确的验证码
+        try {
+            String captchaKey = CommonUtil.getCaptchaKey(request); // key的前缀
+            redisCode = stringRedisTemplate.opsForValue().get(RedisConstant.USER_REGISTER_CODE_MAIL_REDIS_KEY + captchaKey).split("_")[0];
+        } catch (Exception e) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "验证码已过期");
+        }
         // 校验用户参数
         if (!code.equals(redisCode)) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR, "验证码错误");
         }
-        if (findUserMail(userMail)) {
+        if (!ObjectUtils.isEmpty(findUserMail(userMail))) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR, "该用户已注册");
         }
         // 用于保存用户信息
@@ -63,16 +68,48 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return this.save(user);
     }
 
+    @Override
+    public String login(UserLoginVO userLoginVO, HttpServletRequest request) {
+        // 得到基本信息
+        String code = userLoginVO.getCode();
+        String mail = userLoginVO.getMail();
+        String pwd = userLoginVO.getPwd();
+        // 校验参数
+        // 得到图形验证码的值
+        User user;
+        String redisCode; // 用户正确的验证码
+        try {
+            String captchaKey = CommonUtil.getCaptchaKey(request); // key的前缀
+            redisCode = stringRedisTemplate.opsForValue().get(RedisConstant.USER_LOGIN_CODE_IMG_REDIS_KEY + captchaKey).split("_")[0];
+        } catch (Exception e) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "验证码已过期");
+        }
+        if (!code.equals(redisCode)) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "验证码错误");
+        }
+        user = findUserMail(mail);
+        if (ObjectUtils.isEmpty(user)) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "该用户未注册");
+        }
+        // 得到用户密码的加密值
+        String cryptPwd = Md5Crypt.md5Crypt(pwd.getBytes(), user.getSecret());
+        if (!cryptPwd.equals(user.getPwd())) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "用户名或密码不正确");
+        }
+        com.liuche.common.model.User user1 = CopyUtil.copy(user, com.liuche.common.model.User.class);
+        return JWTUtil.geneJsonWebToken(user1, request); // 返回前端token信息
+    }
+
     /**
      * 查找该邮箱是否已经注册
+     *
      * @param mail
      * @return
      */
-    private boolean findUserMail(String mail) {
+    private User findUserMail(String mail) {
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("mail", mail);
-        User user = this.getOne(wrapper);
-        return !ObjectUtils.isEmpty(user);
+        return this.getOne(wrapper);
     }
 }
 

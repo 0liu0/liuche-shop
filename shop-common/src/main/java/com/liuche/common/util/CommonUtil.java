@@ -1,8 +1,13 @@
 package com.liuche.common.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.models.auth.In;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
@@ -15,9 +20,11 @@ import java.util.Random;
  * @ClassName: CommonUtil
  * @Description: TODO
  */
+@Slf4j
 public class CommonUtil {
     /**
      * 获取ip
+     *
      * @param request
      * @return
      */
@@ -36,8 +43,7 @@ public class CommonUtil {
     }
 
 
-
-    public static String MD5(String data)  {
+    public static String MD5(String data) {
         try {
             java.security.MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] array = md.digest(data.getBytes("UTF-8"));
@@ -56,12 +62,15 @@ public class CommonUtil {
         Random random = new Random();
         return String.valueOf(random.nextInt(900000) + 100000);
     }
+
     /**
      * 生成指定长度随机字母和数字
+     *
      * @param length
      * @return
      */
     private static final String ALL_CHAR_NUM = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
     public static String getStringNumRandom(int length) {
         //生成随机数字和字母,
         Random random = new Random();
@@ -80,4 +89,14 @@ public class CommonUtil {
         return CommonUtil.MD5(userAgent + ipAddr);
     }
 
+    public static void sendJsonMessage(HttpServletResponse response, Object obj) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.setContentType("application/json; charset=utf-8");
+        try (PrintWriter writer = response.getWriter()) {
+            writer.print(objectMapper.writeValueAsString(obj));
+            response.flushBuffer();
+        } catch (IOException e) {
+            log.warn("响应json数据给前端异常：{}", e);
+        }
+    }
 }

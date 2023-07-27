@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @Author 刘彻
  * @Date 2023/7/27 12:32
@@ -14,7 +16,8 @@ import lombok.Data;
  */
 @Data
 @ApiModel(value ="用户注册参数")
-public class UserRegisterVO {
+public class UserRegisterVO implements Serializable {
+    private static final long serialVersionUID = -2240203371570606640L;
     /**
      * 昵称
      */

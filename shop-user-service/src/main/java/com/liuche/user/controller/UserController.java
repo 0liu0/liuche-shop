@@ -2,8 +2,13 @@ package com.liuche.user.controller;
 
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
+import com.liuche.common.util.CopyUtil;
 import com.liuche.common.util.JsonData;
+import com.liuche.common.util.RequestContext;
+import com.liuche.user.model.User;
+import com.liuche.user.model.request.UserLoginVO;
 import com.liuche.user.model.request.UserRegisterVO;
+import com.liuche.user.model.response.UserInfoRespVO;
 import com.liuche.user.service.UserService;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.apache.commons.lang3.ObjectUtils;
@@ -30,7 +35,7 @@ public class UserController {
     private UserService userService;
     @GetMapping("/test")
     public String test() {
-        return "这是测试哦";
+        return "这是测试哦，用户id为:"+ RequestContext.getUserId();
     }
     @PostMapping("/register")
     public JsonData register(@RequestBody UserRegisterVO userRegisterVO, HttpServletRequest request) {
@@ -44,7 +49,12 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public JsonData login() {
-        return null;
+    public JsonData login(@RequestBody UserLoginVO userLoginVO, HttpServletRequest request) {
+        // 校验参数
+        if (ObjectUtils.isEmpty(userLoginVO)) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR,"参数不符合要求");
+        }
+        String token = userService.login(userLoginVO, request);
+        return JsonData.ok(token);
     }
 }

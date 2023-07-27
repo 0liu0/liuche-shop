@@ -9,11 +9,13 @@ import com.liuche.user.constant.RedisConstant;
 import com.liuche.user.util.SendMsgUtil;
 import com.wf.captcha.SpecCaptcha;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,15 +43,21 @@ public class NotifyController {
     private static final Long ONE_MINUTE = 60 * 1000L;
 
     @ApiOperation("获取图形验证码")
-    @GetMapping("/captcha")
-    public void getCaptcha(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @GetMapping("/captcha/{id}")
+    public void getCaptcha(@ApiParam(value = "0是注册的图形验证，1是登录的图形验证") @PathVariable Integer id, HttpServletRequest request, HttpServletResponse response) throws IOException {
         // png类型
         SpecCaptcha captcha = new SpecCaptcha(130, 48);
         // 获取验证码的字符
         String code = captcha.text();
         // 将验证码写入redis
         String captchaKey = CommonUtil.getCaptchaKey(request);
-        stringRedisTemplate.opsForValue().set(RedisConstant.USER_REGISTER_CODE_IMG_REDIS_KEY + captchaKey, code, RedisConstant.USER_REGISTER_CODE_REDIS_OUT_TIME, TimeUnit.MILLISECONDS);
+        String prev;
+        // 校验是什么品种的图形验证码
+        if (id == 0)
+            prev = RedisConstant.USER_REGISTER_CODE_IMG_REDIS_KEY;
+        else
+            prev = RedisConstant.USER_LOGIN_CODE_IMG_REDIS_KEY;
+        stringRedisTemplate.opsForValue().set(prev + captchaKey, code, RedisConstant.USER_REGISTER_CODE_REDIS_OUT_TIME, TimeUnit.MILLISECONDS);
         log.info("captchaKey:" + captchaKey);
         log.info("验证码：" + code);
         // 输出验证码
@@ -58,6 +66,7 @@ public class NotifyController {
 
     /**
      * 发送邮箱验证码
+     *
      * @param to
      * @param captchaCode
      * @param request
