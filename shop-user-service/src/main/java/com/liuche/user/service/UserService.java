@@ -2,6 +2,9 @@ package com.liuche.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liuche.user.model.User;
+import com.liuche.user.model.request.UserRegisterVO;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author 刘彻
@@ -10,4 +13,5 @@ import com.liuche.user.model.User;
 */
 public interface UserService extends IService<User> {
 
+    boolean register(UserRegisterVO userRegisterVO, HttpServletRequest request);
 }

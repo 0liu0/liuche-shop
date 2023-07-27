@@ -29,7 +29,13 @@ public enum ExceptionCode {
      */
     ACCOUNT_REPEAT(250001, "账号已经存在"),
     ACCOUNT_UNREGISTER(250002, "账号不存在"),
-    ACCOUNT_PWD_ERROR(250003, "账号或者密码错误");;
+    ACCOUNT_PWD_ERROR(250003, "账号或者密码错误"),
+    /**
+     * 系统
+     */
+    SYSTEM_ERROR(260000, "系统内部异常");
+
+    ;
     private String msg;
     private int code;
 

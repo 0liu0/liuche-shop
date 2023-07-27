@@ -2,13 +2,19 @@ package com.liuche.user.controller;
 
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
-import com.wf.captcha.SpecCaptcha;
+import com.liuche.common.util.JsonData;
+import com.liuche.user.model.request.UserRegisterVO;
+import com.liuche.user.service.UserService;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @Author 刘彻
@@ -20,8 +26,25 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
+    @Autowired
+    private UserService userService;
     @GetMapping("/test")
     public String test() {
         return "这是测试哦";
+    }
+    @PostMapping("/register")
+    public JsonData register(@RequestBody UserRegisterVO userRegisterVO, HttpServletRequest request) {
+        // 校验参数
+        if (ObjectUtils.isEmpty(userRegisterVO)) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR,"参数不符合要求");
+        }
+        boolean flag = userService.register(userRegisterVO, request);
+        if (flag) return JsonData.ok("注册成功！");
+        return JsonData.error("注册失败，请稍后再试");
+    }
+
+    @PostMapping("/login")
+    public JsonData login() {
+        return null;
     }
 }

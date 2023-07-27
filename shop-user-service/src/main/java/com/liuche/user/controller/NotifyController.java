@@ -8,6 +8,7 @@ import com.liuche.common.util.JsonData;
 import com.liuche.user.constant.RedisConstant;
 import com.liuche.user.util.SendMsgUtil;
 import com.wf.captcha.SpecCaptcha;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ public class NotifyController {
     private SendMsgUtil sendMsgUtil;
     private static final Long ONE_MINUTE = 60 * 1000L;
 
+    @ApiOperation("获取图形验证码")
     @GetMapping("/captcha")
     public void getCaptcha(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // png类型
@@ -46,8 +48,8 @@ public class NotifyController {
         // 获取验证码的字符
         String code = captcha.text();
         // 将验证码写入redis
-        String captchaKey = getCaptchaKey(request);
-        stringRedisTemplate.opsForValue().set(RedisConstant.USER_REGISTER_CODE_REDIS_KEY + captchaKey, code, RedisConstant.USER_REGISTER_CODE_REDIS_OUT_TIME, TimeUnit.MILLISECONDS);
+        String captchaKey = CommonUtil.getCaptchaKey(request);
+        stringRedisTemplate.opsForValue().set(RedisConstant.USER_REGISTER_CODE_IMG_REDIS_KEY + captchaKey, code, RedisConstant.USER_REGISTER_CODE_REDIS_OUT_TIME, TimeUnit.MILLISECONDS);
         log.info("captchaKey:" + captchaKey);
         log.info("验证码：" + code);
         // 输出验证码
@@ -56,12 +58,12 @@ public class NotifyController {
 
     /**
      * 发送邮箱验证码
-     *
      * @param to
      * @param captchaCode
      * @param request
      * @return
      */
+    @ApiOperation("发送六位随机验证码至用户邮箱")
     @GetMapping("/send-code")
     public JsonData sendCode(String to, String captchaCode, HttpServletRequest request) {
         // 校验参数是否符合要求
@@ -73,8 +75,8 @@ public class NotifyController {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR, "邮箱格式不符合规范");
         }
         // 验证验证码是否正确
-        String captchaKey = getCaptchaKey(request);
-        String str = stringRedisTemplate.opsForValue().get(RedisConstant.USER_REGISTER_CODE_REDIS_KEY + captchaKey);
+        String captchaKey = CommonUtil.getCaptchaKey(request);
+        String str = stringRedisTemplate.opsForValue().get(RedisConstant.USER_REGISTER_CODE_IMG_REDIS_KEY + captchaKey);
         if (StringUtils.isBlank(str) || !str.equals(captchaCode)) {
             throw new BusinessException(ExceptionCode.CODE_ERROR, "验证码错误");
         }
@@ -93,14 +95,6 @@ public class NotifyController {
         String redisCode = code + "_" + System.currentTimeMillis();
         stringRedisTemplate.opsForValue().set(RedisConstant.USER_REGISTER_CODE_MAIL_REDIS_KEY + captchaKey, redisCode, RedisConstant.USER_REGISTER_CODE_REDIS_OUT_TIME, TimeUnit.MILLISECONDS);
         sendMsgUtil.sendMsg(to, "刘彻商城注册验证码", "您的验证码为：" + code + "。为了您和家人的安全，请勿外泄！");
-        return JsonData.ok();
-    }
-
-    private String getCaptchaKey(HttpServletRequest request) {
-        // 根据用户的ip以及浏览器指纹获取唯一值
-        String ipAddr = CommonUtil.getRemoteIp(request);
-        String userAgent = request.getHeader("User-Agent");// 相当于浏览器指纹
-        // userAgent这个信息很长不适合做key，使用md5加密变短点儿返回即可，保证了key的唯一性
-        return CommonUtil.MD5(userAgent + ipAddr);
+        return JsonData.ok("验证码已发送");
     }
 }

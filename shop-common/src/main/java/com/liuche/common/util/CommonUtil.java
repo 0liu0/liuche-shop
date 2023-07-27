@@ -56,5 +56,28 @@ public class CommonUtil {
         Random random = new Random();
         return String.valueOf(random.nextInt(900000) + 100000);
     }
+    /**
+     * 生成指定长度随机字母和数字
+     * @param length
+     * @return
+     */
+    private static final String ALL_CHAR_NUM = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    public static String getStringNumRandom(int length) {
+        //生成随机数字和字母,
+        Random random = new Random();
+        StringBuilder saltString = new StringBuilder(length);
+        for (int i = 1; i <= length; ++i) {
+            saltString.append(ALL_CHAR_NUM.charAt(random.nextInt(ALL_CHAR_NUM.length())));
+        }
+        return saltString.toString();
+    }
+
+    public static String getCaptchaKey(HttpServletRequest request) {
+        // 根据用户的ip以及浏览器指纹获取唯一值
+        String ipAddr = CommonUtil.getRemoteIp(request);
+        String userAgent = request.getHeader("User-Agent");// 相当于浏览器指纹
+        // userAgent这个信息很长不适合做key，使用md5加密变短点儿返回即可，保证了key的唯一性
+        return CommonUtil.MD5(userAgent + ipAddr);
+    }
 
 }
