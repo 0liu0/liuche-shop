@@ -1,9 +1,8 @@
-package com.liuche.common.config;
+package com.liuche.coupon.config;
 
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -35,14 +34,14 @@ public class Knife4jConfig {
     @Bean
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("服务")
                 .useDefaultResponseMessages(false)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.liuche.user.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.liuche.coupon.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .globalRequestParameters(getGlobalRequestParameters());
-
     }
 
     private ApiInfo apiInfo() {
@@ -67,7 +66,6 @@ public class Knife4jConfig {
                 .query(q -> q.model(m -> m.scalarModel(ScalarType.STRING)))
                 .required(false)
                 .build());
-
 //        parameters.add(new RequestParameterBuilder()
 //                .name("version")
 //                .description("版本号")

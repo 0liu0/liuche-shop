@@ -1,4 +1,4 @@
-package com.liuche.common.config;
+package com.liuche.user.config;
 
 import com.liuche.common.intercepter.LoginInterceptor;
 import io.swagger.annotations.ApiParam;
