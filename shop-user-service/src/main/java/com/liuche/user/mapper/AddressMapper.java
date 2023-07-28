@@ -3,6 +3,7 @@ package com.liuche.user.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.liuche.user.model.Address;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 70671
@@ -12,6 +13,7 @@ import com.liuche.user.model.Address;
 */
 public interface AddressMapper extends BaseMapper<Address> {
 
+    int updateAddressStatus(@Param("userId") long userId);
 }
 
 

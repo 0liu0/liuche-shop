@@ -3,6 +3,7 @@ package com.liuche.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liuche.user.model.Address;
+import com.liuche.user.model.request.AddressAddRequest;
 
 /**
 * @author 70671
@@ -11,4 +12,5 @@ import com.liuche.user.model.Address;
 */
 public interface AddressService extends IService<Address> {
 
+    int addAddress(AddressAddRequest request);
 }

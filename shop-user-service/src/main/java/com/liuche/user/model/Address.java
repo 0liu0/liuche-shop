@@ -25,19 +25,19 @@ public class Address implements Serializable {
      * 用户id
      */
     @TableField(value = "user_id")
-    private Long user_id;
+    private Long userId;
 
     /**
      * 是否默认收货地址：0->否；1->是
      */
     @TableField(value = "default_status")
-    private Integer default_status;
+    private Integer defaultStatus;
 
     /**
      * 收发货人姓名
      */
     @TableField(value = "receive_name")
-    private String receive_name;
+    private String receiveName;
 
     /**
      * 收货人电话
@@ -67,7 +67,7 @@ public class Address implements Serializable {
      * 详细地址
      */
     @TableField(value = "detail_address")
-    private String detail_address;
+    private String detailAddress;
 
     /**
      * 创建时间

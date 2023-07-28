@@ -6,15 +6,17 @@
 
     <resultMap id="BaseResultMap" type="com.liuche.user.model.Address">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="user_id" column="user_id" jdbcType="BIGINT"/>
-            <result property="default_status" column="default_status" jdbcType="INTEGER"/>
-            <result property="receive_name" column="receive_name" jdbcType="VARCHAR"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="defaultStatus" column="default_status" jdbcType="INTEGER"/>
+            <result property="receiveName" column="receive_name" jdbcType="VARCHAR"/>
             <result property="phone" column="phone" jdbcType="VARCHAR"/>
             <result property="province" column="province" jdbcType="VARCHAR"/>
             <result property="city" column="city" jdbcType="VARCHAR"/>
             <result property="region" column="region" jdbcType="VARCHAR"/>
-            <result property="detail_address" column="detail_address" jdbcType="VARCHAR"/>
-            <result property="create_time" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="detailAddress" column="detail_address" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="is_delete" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -23,4 +25,11 @@
 #         city,region,detail_address,
 #         create_time
     </sql>
+    <update id="updateAddressStatus">
+        update address
+        set default_status = 0
+        where default_status = 1
+          and user_id = #{userId}
+          and is_delete = 0
+    </update>
 </mapper>
