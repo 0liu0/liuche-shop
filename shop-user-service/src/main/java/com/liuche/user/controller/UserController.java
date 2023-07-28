@@ -57,4 +57,15 @@ public class UserController {
         String token = userService.login(userLoginVO, request);
         return JsonData.ok(token);
     }
+
+    /**
+     * 得到用户基本信息
+     * @return
+     */
+    @GetMapping("/info")
+    public JsonData getUserInfo() {
+        User byId = userService.getById(RequestContext.getUserId());
+        UserInfoRespVO userInfoRespVO = CopyUtil.copy(byId, UserInfoRespVO.class);
+        return JsonData.ok(userInfoRespVO);
+    }
 }
