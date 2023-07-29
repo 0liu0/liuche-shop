@@ -78,20 +78,18 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
         couponRecord.setUserId(RequestContext.getUserId());
         couponRecord.setUserName(String.valueOf(RequestContext.getUserId())); // 暂时填入用户id
         couponRecord.setUseState(CouponConstant.USER_STATE_NEW);
-        boolean save = couponRecordService.save(couponRecord);
+        int i = this.baseMapper.reduceStock(id, coupon.getStock());
         // 减库存
-        int i = 0;
-        if (save) {
-            i = this.baseMapper.reduceStock(id, coupon.getStock());
-        }else {
-            int j = 1/0;
-            log.warn("发放优惠券失败:{},用户:{}",coupon,RequestContext.getUserId());
+        if (i != 0) {
+            couponRecordService.save(couponRecord);
+        } else {
+            log.warn("发放优惠券失败:{},用户:{}", coupon, RequestContext.getUserId());
             throw new BusinessException(ExceptionCode.COUPON_NO_STOCK);
         }
-        return i != 0;
+        return true;
     }
 
-    private void couponCheck(Coupon coupon,long id) {
+    private void couponCheck(Coupon coupon, long id) {
         // 判断是否存在这个优惠券
         if (ObjectUtils.isEmpty(coupon)) throw new BusinessException(ExceptionCode.PARAMS_ERROR, "没有此优惠券");
         // 得到用户领取该优惠券的记录次数
@@ -99,15 +97,15 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
                 .eq("user_id", RequestContext.getUserId())
                 .eq("coupon_id", id));
         // 判断当前优惠券是否可以领取
-        if (coupon.getStock() <= 0 || count>=coupon.getUserLimit()) {
-            throw  new BusinessException(ExceptionCode.COUPON_NO_STOCK);
+        if (coupon.getStock() <= 0 || count >= coupon.getUserLimit()) {
+            throw new BusinessException(ExceptionCode.COUPON_NO_STOCK);
         }
         //是否在领取时间范围
         long time = System.currentTimeMillis();
         long start = coupon.getStartTime().getTime();
         long end = coupon.getEndTime().getTime();
-        if(time < start || time > end){
-            throw  new BusinessException(ExceptionCode.COUPON_OUT_OF_TIME);
+        if (time < start || time > end) {
+            throw new BusinessException(ExceptionCode.COUPON_OUT_OF_TIME);
         }
     }
 }
