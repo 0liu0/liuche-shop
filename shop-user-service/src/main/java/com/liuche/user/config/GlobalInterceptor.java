@@ -24,11 +24,8 @@ public class GlobalInterceptor implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
-                .addPathPatterns("/**")
+                .addPathPatterns("/api/**")
                 .excludePathPatterns(
-                        "/v2/api-docs/**",
-                        "/swagger-resources/**",
-                        "/doc.html/**",
                         "/api/*/user/login",
                         "/api/*/user/register",
                         "/api/*/notify/**"

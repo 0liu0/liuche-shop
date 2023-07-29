@@ -2,6 +2,10 @@ package com.liuche.coupon.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liuche.coupon.model.Coupon;
+import com.liuche.coupon.model.vo.CouponVO;
+
+import java.util.HashMap;
+import java.util.List;
 
 /**
 * @author 70671
@@ -10,4 +14,5 @@ import com.liuche.coupon.model.Coupon;
 */
 public interface CouponService extends IService<Coupon> {
 
+    HashMap<String, Object> getListByPage(int page, int size);
 }
