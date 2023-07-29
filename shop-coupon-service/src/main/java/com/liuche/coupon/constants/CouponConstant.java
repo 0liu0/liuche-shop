@@ -10,4 +10,5 @@ package com.liuche.coupon.constants;
 public interface CouponConstant {
     String PUBLISH = "PUBLISH";
     String PROMOTION = "PROMOTION";
+    String USER_STATE_NEW = "NEW";
 }

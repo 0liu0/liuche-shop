@@ -2,6 +2,7 @@ package com.liuche.coupon.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.liuche.coupon.model.Coupon;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 70671
@@ -11,6 +12,7 @@ import com.liuche.coupon.model.Coupon;
 */
 public interface CouponMapper extends BaseMapper<Coupon> {
 
+    int reduceStock(@Param("couponId") long id,@Param("couponStock") Integer stock);
 }
 
 

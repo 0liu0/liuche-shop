@@ -6,6 +6,7 @@ import com.liuche.common.util.JsonData;
 import com.liuche.coupon.model.vo.CouponVO;
 import com.liuche.coupon.service.CouponService;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ import java.util.List;
 public class CouponController {
     @Autowired
     private CouponService couponService;
+
     @ApiOperation(value = "test测试")
     @GetMapping("/test")
     public String test() {
@@ -42,5 +44,15 @@ public class CouponController {
         }
         HashMap<String, Object> listByPage = couponService.getListByPage(page, size);
         return JsonData.ok(listByPage);
+    }
+
+    @ApiOperation(value = "得到优惠券")
+    @GetMapping("/get-coupon/{id}")
+    public JsonData getCoupon(@ApiParam("券id") @PathVariable long id) {
+        if (id <= 0) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR);
+        }
+        boolean coupon = couponService.getCoupon(id);
+        return coupon?JsonData.ok("领券成功！"):JsonData.error("领券失败");
     }
 }

@@ -29,4 +29,10 @@
 #         publish_count,stock,create_time,
 #         condition_price,update_time,is_delete
     </sql>
+    <update id="reduceStock">
+        update coupon
+        set stock = stock - 1
+        where id = #{couponId}
+          and stock > 0
+    </update>
 </mapper>
