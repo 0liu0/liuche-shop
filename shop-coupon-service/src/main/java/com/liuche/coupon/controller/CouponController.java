@@ -1,21 +1,22 @@
 package com.liuche.coupon.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
 import com.liuche.coupon.model.vo.CouponVO;
+import com.liuche.coupon.service.CouponRecordService;
 import com.liuche.coupon.service.CouponService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @Author 刘彻
@@ -29,6 +30,8 @@ import java.util.List;
 public class CouponController {
     @Autowired
     private CouponService couponService;
+    @Autowired
+    private CouponRecordService couponRecordService;
 
     @ApiOperation(value = "test测试")
     @GetMapping("/test")
@@ -55,4 +58,15 @@ public class CouponController {
         boolean coupon = couponService.getCoupon(id);
         return coupon?JsonData.ok("领券成功！"):JsonData.error("领券失败");
     }
+
+
+    @ApiOperation("分页查询我的优惠券列表")
+    @GetMapping("/page")
+    public JsonData page(@RequestParam(value = "page",defaultValue = "1")int page,
+                         @RequestParam(value = "size",defaultValue = "20")int size){
+
+        Map<String,Object> pageInfo = couponRecordService.getPage(page,size);
+        return JsonData.ok(pageInfo);
+    }
+
 }

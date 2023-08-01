@@ -96,7 +96,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
                 couponRecord.setUserName(String.valueOf(RequestContext.getUserId())); // 暂时填入用户id
                 couponRecord.setUseState(CouponConstant.USER_STATE_NEW);
                 int i = this.baseMapper.reduceStock(id, coupon.getStock());
-                Thread.sleep(100000);
+//                Thread.sleep(100000);
                 // 保存一个存储记录
                 if (i != 0) {
                     couponRecordService.save(couponRecord);
