@@ -1,9 +1,11 @@
 package com.liuche.coupon.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.liuche.common.constants.RedisConstant;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
+import com.liuche.common.util.RequestContext;
 import com.liuche.coupon.model.CouponRecord;
 import com.liuche.coupon.model.vo.CouponVO;
 import com.liuche.coupon.service.CouponRecordService;
@@ -81,8 +83,11 @@ public class CouponController {
     @ApiOperation("查询优惠券记录信息")
     @GetMapping("/detail/{record_id}")
     public JsonData findUserCouponRecordById(@PathVariable("record_id")long recordId ){
-
-        CouponRecord couponRecordVO = couponRecordService.getById(recordId);
+        long userId = RequestContext.getUserId();
+        QueryWrapper<CouponRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id",userId);
+        queryWrapper.eq("coupon_id",recordId);
+        CouponRecord couponRecordVO = couponRecordService.getOne(queryWrapper);
         return  couponRecordVO == null? JsonData.buildResult(ExceptionCode.COUPON_NO_EXITS):JsonData.ok(couponRecordVO);
     }
 
