@@ -25,10 +25,10 @@ public class JWTUtil {
     private static final String TOKEN_PREFIX = "liuche-shop"; // 前缀
     private static final String SUBJECT = "login-user-info"; // 主题
     private static final String SECRET = "liuche-shop-salt"; // 加密的盐
-    private static final Long EXPIRE = 1000 * 60 * 60 * 24 * 2L; // 保存时效两天
+    private static final Long EXPIRE = 1000 * 60 * 60 * 24 * 70L; // 保存时效两天
     /**
      * 根据用户信息，生成令牌
-     * 当前token:liuche-shopeyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2dpbi11c2VyLWluZm8iLCJpcCI6IjEyNy4wLjAuMSIsImlkIjo1LCJuYW1lIjoibGl1Y2hlIiwibWFpbCI6IjcwNjcxNjg1MkBxcS5jb20iLCJleHAiOjE2OTA2MTk5MzF9.FWrLjqGFJs5JX96nzosRAqUjdA-yyRxkAiiIIqv_AlU
+     * 当前token:liuche-shopeyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2dpbi11c2VyLWluZm8iLCJpcCI6IjEyNy4wLjAuMSIsImlkIjo1LCJuYW1lIjoibGl1Y2hlIiwibWFpbCI6IjcwNjcxNjg1MkBxcS5jb20iLCJleHAiOjE2OTY2NjkwNTl9.Ou50YEbCxqqMZy5hvtCsnWYqHgKnbDV4Z8tjO6DdhNo
      * @param user
      * @return
      */
