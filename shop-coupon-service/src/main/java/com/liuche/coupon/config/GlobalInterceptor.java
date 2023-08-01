@@ -25,7 +25,8 @@ public class GlobalInterceptor implements WebMvcConfigurer {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
-                        "/api/*/coupon/list/**"
+                        "/api/*/coupon/list/**",
+                        "/api/*/coupon/init-coupon/**"
                 );
     }
 }

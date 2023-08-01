@@ -17,4 +17,6 @@ public interface CouponService extends IService<Coupon> {
     HashMap<String, Object> getListByPage(int page, int size);
 
     boolean getCoupon(long id);
+
+    boolean initUserCoupon(long userId);
 }

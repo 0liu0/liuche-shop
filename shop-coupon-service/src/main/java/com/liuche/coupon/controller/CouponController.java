@@ -12,6 +12,7 @@ import com.liuche.coupon.service.CouponRecordService;
 import com.liuche.coupon.service.CouponService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.util.Json;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +90,13 @@ public class CouponController {
         queryWrapper.eq("coupon_id",recordId);
         CouponRecord couponRecordVO = couponRecordService.getOne(queryWrapper);
         return  couponRecordVO == null? JsonData.buildResult(ExceptionCode.COUPON_NO_EXITS):JsonData.ok(couponRecordVO);
+    }
+
+    @ApiOperation("RPC-新用户领券接口")
+    @GetMapping("/init-coupon/{userId}")
+    public JsonData getInitCoupon(@PathVariable long userId) {
+        couponService.initUserCoupon(userId);
+        return JsonData.ok("新用户优惠券发送成功！");
     }
 
 

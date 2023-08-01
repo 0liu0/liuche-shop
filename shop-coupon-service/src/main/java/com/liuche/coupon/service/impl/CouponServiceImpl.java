@@ -22,6 +22,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -74,7 +75,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
      * @return
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class,propagation = Propagation.REQUIRED)
     public boolean getCoupon(long id) {
         // 获取分布式锁
         RLock lock = redissonClient.getLock(RedisConstant.COUPON_LOCK + id);
@@ -119,6 +120,27 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
             }
         }
         return false;
+    }
+
+    /**
+     * 根据前端传来的用户id，初始化新用户的优惠券接口
+     * @param userId
+     * @return
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class,propagation = Propagation.REQUIRED)
+    public boolean initUserCoupon(long userId) {
+        // 得到所有的新用户可以领取的优惠券
+        QueryWrapper<Coupon> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("category",CouponConstant.NEW);
+        List<Coupon> coupons = this.baseMapper.selectList(queryWrapper);
+        // 根据优惠券id去调用getCoupon方法给用户增加优惠券，由于此时RequestContext没有用户id的数据，所以要手动加上
+        RequestContext.setUserId(userId);
+        // 遍历新人优惠券列表调用方法增加优惠券
+        for (Coupon coupon : coupons) {
+            this.getCoupon(coupon.getId());
+        }
+        return true;
     }
 
     private void couponCheck(Coupon coupon, long id) {
