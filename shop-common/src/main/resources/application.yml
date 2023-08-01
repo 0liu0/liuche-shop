@@ -1,0 +1,7 @@
+spring:
+  redis:
+    port: 6379
+    host: 192.168.253.17
+    database: 0
+    password: liuche
+    redisson-database: 2 # redisson使用的数据库

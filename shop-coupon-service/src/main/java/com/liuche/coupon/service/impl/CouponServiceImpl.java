@@ -3,6 +3,7 @@ package com.liuche.coupon.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liuche.common.constants.RedisConstant;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.CommonUtil;
@@ -17,12 +18,15 @@ import com.liuche.coupon.service.CouponRecordService;
 import com.liuche.coupon.service.CouponService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 70671
@@ -35,6 +39,8 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
         implements CouponService {
     @Autowired
     private CouponRecordService couponRecordService;
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Override
     public HashMap<String, Object> getListByPage(int page, int size) {
@@ -61,32 +67,58 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, Coupon>
         return map;
     }
 
+    /**
+     * 得到优惠券服务
+     *
+     * @param id
+     * @return
+     */
     @Override
     @Transactional
     public boolean getCoupon(long id) {
-        // 根据优惠券id查询优惠券
-        Coupon coupon = this.baseMapper.selectById(id);
-        couponCheck(coupon, id); // 校验优惠券信息
-        // 记录信息
-        CouponRecord couponRecord = new CouponRecord();
-        couponRecord.setCouponId(id);
-        couponRecord.setCouponTitle(coupon.getCouponTitle());
-        couponRecord.setEndTime(coupon.getEndTime());
-        couponRecord.setPrice(coupon.getPrice());
-        couponRecord.setConditionPrice(coupon.getConditionPrice());
-        couponRecord.setStartTime(coupon.getStartTime());
-        couponRecord.setUserId(RequestContext.getUserId());
-        couponRecord.setUserName(String.valueOf(RequestContext.getUserId())); // 暂时填入用户id
-        couponRecord.setUseState(CouponConstant.USER_STATE_NEW);
-        int i = this.baseMapper.reduceStock(id, coupon.getStock());
-        // 减库存
-        if (i != 0) {
-            couponRecordService.save(couponRecord);
-        } else {
-            log.warn("发放优惠券失败:{},用户:{}", coupon, RequestContext.getUserId());
-            throw new BusinessException(ExceptionCode.COUPON_NO_STOCK);
+        // 获取分布式锁
+        RLock lock = redissonClient.getLock(RedisConstant.COUPON_LOCK + id);
+        // 尝试获取分布式锁
+        try {
+            if (lock.tryLock(0, -1, TimeUnit.SECONDS)) {
+                // 根据优惠券id查询优惠券
+                Coupon coupon = this.baseMapper.selectById(id);
+                couponCheck(coupon, id); // 校验优惠券信息
+                // 记录信息
+                CouponRecord couponRecord = new CouponRecord();
+                couponRecord.setCouponId(id);
+                couponRecord.setCouponTitle(coupon.getCouponTitle());
+                couponRecord.setEndTime(coupon.getEndTime());
+                couponRecord.setPrice(coupon.getPrice());
+                couponRecord.setConditionPrice(coupon.getConditionPrice());
+                couponRecord.setStartTime(coupon.getStartTime());
+                couponRecord.setUserId(RequestContext.getUserId());
+                couponRecord.setUserName(String.valueOf(RequestContext.getUserId())); // 暂时填入用户id
+                couponRecord.setUseState(CouponConstant.USER_STATE_NEW);
+                int i = this.baseMapper.reduceStock(id, coupon.getStock());
+                Thread.sleep(100000);
+                // 保存一个存储记录
+                if (i != 0) {
+                    couponRecordService.save(couponRecord);
+                } else {
+                    log.warn("发放优惠券失败:{},用户:{}", coupon, RequestContext.getUserId());
+                    throw new BusinessException(ExceptionCode.COUPON_NO_STOCK);
+                }
+                return true;
+            } else {
+                // 没有抢到锁，休息20ms继续执行其操作
+                Thread.sleep(20);
+                this.getCoupon(id);
+            }
+        } catch (InterruptedException e) {
+            log.info("获取优惠券服务失败，{}", String.valueOf(e));
+        } finally {
+            // 释放自己的锁
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
-        return true;
+        return false;
     }
 
     private void couponCheck(Coupon coupon, long id) {

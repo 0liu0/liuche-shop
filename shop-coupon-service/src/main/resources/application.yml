@@ -19,6 +19,7 @@ spring:
     host: 192.168.253.17
     port: 6379
     database: 1
+    redisson-database: 2 # redisson使用的数据库
 #配置plus打印sql日志
 mybatis-plus:
   configuration:
