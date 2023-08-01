@@ -6,7 +6,9 @@ import com.liuche.common.util.JsonData;
 import com.liuche.product.model.Banner;
 import com.liuche.product.service.ProductService;
 import com.liuche.product.vo.BannerVO;
+import com.liuche.product.vo.ProductVO;
 import io.swagger.annotations.ApiOperation;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Copy;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,5 +35,12 @@ public class ProductController {
     public JsonData getList(@PathVariable int page, @PathVariable int size) {
         Map<String, Object> map = productService.selectByPage(page, size);
         return JsonData.ok(map);
+    }
+
+    @ApiOperation("商品详情页接口开发")
+    @GetMapping("/detail/{productId}")
+    public JsonData getDetail(@PathVariable long productId) {
+        ProductVO productVO = CopyUtil.copy(productService.getById(productId), ProductVO.class);
+        return JsonData.ok(productVO);
     }
 }
