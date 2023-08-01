@@ -38,6 +38,7 @@ public enum ExceptionCode {
      * 优惠券
      */
     COUPON_OUT_OF_TIME(2700001,"优惠券已过期"),
+    COUPON_NO_EXITS(2700002,"优惠券不存在"),
     COUPON_NO_STOCK(2700002,"已被领取完，或已达最大限制");
     private String msg;
     private int code;

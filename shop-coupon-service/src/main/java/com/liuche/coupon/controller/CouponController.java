@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
+import com.liuche.coupon.model.CouponRecord;
 import com.liuche.coupon.model.vo.CouponVO;
 import com.liuche.coupon.service.CouponRecordService;
 import com.liuche.coupon.service.CouponService;
@@ -68,5 +69,22 @@ public class CouponController {
         Map<String,Object> pageInfo = couponRecordService.getPage(page,size);
         return JsonData.ok(pageInfo);
     }
+
+    /**
+     * 查询优惠券记录信息
+     * 水平权限攻击：也叫作访问控制攻击,Web应用程序接收到用户请求，修改某条数据时，没有判断数据的所属人，
+     * 或者在判断数据所属人时从用户提交的表单参数中获取了userid。
+     * 导致攻击者可以自行修改userid修改不属于自己的数据
+     * @param recordId
+     * @return
+     */
+    @ApiOperation("查询优惠券记录信息")
+    @GetMapping("/detail/{record_id}")
+    public JsonData findUserCouponRecordById(@PathVariable("record_id")long recordId ){
+
+        CouponRecord couponRecordVO = couponRecordService.getById(recordId);
+        return  couponRecordVO == null? JsonData.buildResult(ExceptionCode.COUPON_NO_EXITS):JsonData.ok(couponRecordVO);
+    }
+
 
 }
