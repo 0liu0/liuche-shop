@@ -3,6 +3,8 @@ package com.liuche.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liuche.product.model.Product;
 
+import java.util.Map;
+
 /**
 * @author 70671
 * @description 针对表【product】的数据库操作Service
@@ -10,4 +12,5 @@ import com.liuche.product.model.Product;
 */
 public interface ProductService extends IService<Product> {
 
+    Map<String,Object> selectByPage(int page, int size);
 }

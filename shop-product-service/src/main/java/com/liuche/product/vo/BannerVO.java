@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @Author 刘彻
  * @Date 2023/8/1 22:37
@@ -13,7 +15,8 @@ import lombok.Data;
  * @Description: TODO
  */
 @Data
-public class BannerVO {
+public class BannerVO implements Serializable {
+    private static final long serialVersionUID = 7655246551439632548L;
     /**
      * id
      */
