@@ -7,6 +7,7 @@ import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.CopyUtil;
 import com.liuche.common.util.RequestContext;
 import com.liuche.product.dto.AddProductDTO;
+import com.liuche.product.dto.UpdateProductDTO;
 import com.liuche.product.model.Product;
 import com.liuche.product.service.CartService;
 import com.liuche.product.service.ProductService;
@@ -103,6 +104,29 @@ public class CartServiceImpl implements CartService {
             return res;
         }
         return null;
+    }
+
+    @Override
+    public boolean delProduct(String id) {
+        // 得到用户的购物车
+        BoundHashOperations<String, Object, Object> userCartOps = getUserCartOps();
+        Long delete = userCartOps.delete(id);
+        log.info("delete->"+delete);
+        return delete != 0;
+    }
+
+    @Override
+    public boolean updateCartProductInfo(UpdateProductDTO productDTO) {
+        // 得到用户的购物车
+        BoundHashOperations<String, Object, Object> userCartOps = getUserCartOps();
+        CartItemVO itemVO = (CartItemVO) userCartOps.get(String.valueOf(productDTO.getProductId()));
+        if (itemVO==null) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR,"您的购物车没有此商品");
+        }
+        itemVO.setBuyNum(productDTO.getBuyNum());
+        // 保存至redis
+        userCartOps.put(String.valueOf(productDTO.getProductId()),itemVO);
+        return true;
     }
 
     /**

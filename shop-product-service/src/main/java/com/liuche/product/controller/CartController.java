@@ -4,6 +4,7 @@ import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
 import com.liuche.product.dto.AddProductDTO;
+import com.liuche.product.dto.UpdateProductDTO;
 import com.liuche.product.service.CartService;
 import com.liuche.product.vo.CartVO;
 import io.swagger.annotations.ApiOperation;
@@ -49,6 +50,24 @@ public class CartController {
     public JsonData getUserCart() {
         CartVO cartVO = cartService.getUserCartInfo();
         return JsonData.ok(cartVO);
+    }
+
+    @ApiOperation("从购物车删除商品")
+    @GetMapping("/del/product/{id}")
+    public JsonData delProduct(@PathVariable String id) {
+        boolean flag = cartService.delProduct(id);
+        return flag?JsonData.ok("删除成功"): JsonData.error("未找到此商品，或以删除");
+    }
+
+    @ApiOperation("从购物车修改商品信息")
+    @PostMapping("/update/product")
+    public JsonData updateProduct(@RequestBody UpdateProductDTO productDTO) {
+        if (productDTO==null) {
+            return JsonData.error("错误！");
+        }
+        // 参数校验 todo 购买数量必须大于等于1
+        cartService.updateCartProductInfo(productDTO);
+        return JsonData.ok("修改成功！");
     }
 
 }
