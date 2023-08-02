@@ -7,10 +7,7 @@ import com.liuche.product.dto.AddProductDTO;
 import com.liuche.product.service.CartService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -37,6 +34,13 @@ public class CartController {
         // 添加商品至购物车
         cartService.addProduct(dto);
         return JsonData.ok("添加商品成功！");
+    }
+
+    @ApiOperation("清除用户购物车")
+    @GetMapping("/clear")
+    public JsonData clearCart() {
+        cartService.clearCart();
+        return JsonData.ok("清除用户购物车成功！");
     }
 
 }

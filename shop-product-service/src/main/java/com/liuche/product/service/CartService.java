@@ -11,4 +11,6 @@ import com.liuche.product.dto.AddProductDTO;
  */
 public interface CartService {
     boolean addProduct(AddProductDTO dto);
+
+    boolean clearCart();
 }

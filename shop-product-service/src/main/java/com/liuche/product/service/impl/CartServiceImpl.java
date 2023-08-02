@@ -40,6 +40,7 @@ public class CartServiceImpl implements CartService {
         Long productId = dto.getProductId();
         int buyNum = dto.getBuyNum();
         // 得到用户的购物车
+        // 无论userCartOps有没有值都不会报错
         BoundHashOperations<String, Object, Object> userCartOps = this.getUserCartOps();
         Object cacheObj = userCartOps.get(String.valueOf(productId));
         if (cacheObj == null) { // 之前未添加该产品
@@ -59,6 +60,12 @@ public class CartServiceImpl implements CartService {
             itemVO.setBuyNum(itemVO.getBuyNum() + buyNum);
             userCartOps.put(String.valueOf(productId), itemVO);
         }
+        return true;
+    }
+
+    @Override
+    public boolean clearCart() {
+        redisTemplate.delete(getCartKey());
         return true;
     }
 
