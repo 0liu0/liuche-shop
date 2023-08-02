@@ -12,6 +12,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 
 /**
  * @Author 刘彻
@@ -28,7 +29,7 @@ public class CartController {
 
     @ApiOperation("添加商品到购物车")
     @PostMapping("/add/product")
-    public JsonData addProduct(@RequestBody AddProductDTO dto) {
+    public JsonData addProduct(@Valid @RequestBody AddProductDTO dto) {
         // 校验参数 todo 校验参数的数量是否符合规范，例如不可小于0
         if (ObjectUtils.isEmpty(dto)) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR);
@@ -61,7 +62,7 @@ public class CartController {
 
     @ApiOperation("从购物车修改商品信息")
     @PostMapping("/update/product")
-    public JsonData updateProduct(@RequestBody UpdateProductDTO productDTO) {
+    public JsonData updateProduct(@Valid @RequestBody UpdateProductDTO productDTO) {
         if (productDTO==null) {
             return JsonData.error("错误！");
         }

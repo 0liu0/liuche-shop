@@ -3,6 +3,8 @@ package com.liuche.product.dto;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -19,9 +21,11 @@ public class UpdateProductDTO implements Serializable {
     /**
      * 商品id
      */
+    @NotNull(message = "【商品id】不能为空")
     private Long productId;
     /**
      * 商品欲购买数量
      */
+    @Min(value = 1, message = "【商品数量】不能小于1")
     private Integer buyNum;
 }
