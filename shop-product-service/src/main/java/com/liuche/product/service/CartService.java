@@ -1,6 +1,9 @@
 package com.liuche.product.service;
 
 import com.liuche.product.dto.AddProductDTO;
+import com.liuche.product.vo.CartVO;
+
+import java.util.Map;
 
 /**
  * @Author 刘彻
@@ -13,4 +16,6 @@ public interface CartService {
     boolean addProduct(AddProductDTO dto);
 
     boolean clearCart();
+
+    CartVO getUserCartInfo();
 }

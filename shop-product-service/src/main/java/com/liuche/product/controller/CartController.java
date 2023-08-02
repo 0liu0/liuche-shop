@@ -5,6 +5,7 @@ import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
 import com.liuche.product.dto.AddProductDTO;
 import com.liuche.product.service.CartService;
+import com.liuche.product.vo.CartVO;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,13 @@ public class CartController {
     public JsonData clearCart() {
         cartService.clearCart();
         return JsonData.ok("清除用户购物车成功！");
+    }
+
+    @ApiOperation("查看用户购物车")
+    @GetMapping("/user/cart")
+    public JsonData getUserCart() {
+        CartVO cartVO = cartService.getUserCartInfo();
+        return JsonData.ok(cartVO);
     }
 
 }
