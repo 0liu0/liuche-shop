@@ -1,8 +1,13 @@
 package com.liuche.order.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.liuche.common.util.JsonData;
+import com.liuche.order.dto.OrderDTO;
+import com.liuche.order.enums.ProductOrderStateEnum;
+import com.liuche.order.service.ProductOrderService;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @Author 刘彻
@@ -14,8 +19,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/order")
 public class ProductOrderController {
-    @GetMapping("/test")
-    public String test() {
-        return "当你看到这条消息就证明整合成功了！";
+    @Resource
+    private ProductOrderService productOrderService;
+    @PostMapping("/add")
+    public JsonData addOrder(@RequestBody OrderDTO dto) {
+        boolean flag = productOrderService.addOrder(dto);
+        if (flag) { // 创建订单成功
+            // 根据支付方式类型转到合适的支付
+        }else { // 创建订单失败
+            // 返回给前端创建失败
+        }
+        return JsonData.ok();
     }
 }

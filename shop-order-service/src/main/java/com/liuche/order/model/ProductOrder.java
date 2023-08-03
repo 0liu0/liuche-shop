@@ -15,7 +15,7 @@ import lombok.Data;
 @Data
 public class ProductOrder implements Serializable {
     /**
-     * 
+     * 订单id
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

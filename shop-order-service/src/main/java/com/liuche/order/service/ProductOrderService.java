@@ -1,6 +1,7 @@
 package com.liuche.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.liuche.order.dto.OrderDTO;
 import com.liuche.order.model.ProductOrder;
 
 /**
@@ -10,4 +11,5 @@ import com.liuche.order.model.ProductOrder;
 */
 public interface ProductOrderService extends IService<ProductOrder> {
 
+    boolean addOrder(OrderDTO dto);
 }
