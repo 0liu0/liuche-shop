@@ -3,6 +3,11 @@ server:
 spring:
   application:
     name: shop-coupon-service
+  cloud:
+    #注册中心地址
+    nacos:
+      discovery:
+        server-addr: localhost:8848
   # 避免使用swagger报错问题
   mvc:
     pathmatch:
