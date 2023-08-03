@@ -8,6 +8,7 @@ import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.CommonUtil;
 import com.liuche.common.util.CopyUtil;
 import com.liuche.user.constant.RedisConstant;
+import com.liuche.user.feign.coupon.CouponFeign;
 import com.liuche.user.mapper.UserMapper;
 import com.liuche.user.model.User;
 import com.liuche.user.model.request.UserLoginVO;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -34,6 +36,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private CouponFeign couponFeign;
 
     @Override
     public boolean register(UserRegisterVO userRegisterVO, HttpServletRequest request) {
@@ -63,9 +67,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 密码 + 加盐处理
         String cryptPwd = Md5Crypt.md5Crypt(userRegisterVO.getPwd().getBytes(), salt);
         user.setPwd(cryptPwd);
-        // 对用户信息啥的进行一个初始化 todo
         // 保存用户信息到数据库
-        return this.save(user);
+        boolean save = this.save(user);
+        // 保存到数据库中后user变量会有一个userId
+        // 对用户信息啥的进行一个初始化 todo
+        if (save) {
+            couponFeign.getInitCoupon(user.getId());
+        }else {
+            throw new BusinessException(ExceptionCode.SYSTEM_ERROR);
+        }
+        return true;
     }
 
     @Override

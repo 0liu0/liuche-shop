@@ -116,6 +116,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
+        <!--springCloud的负载均衡依赖 注：这个依赖也要导入，因为openfeign要使用这个做负载均衡不然会报错IllegalStateException-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-loadbalancer</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
