@@ -11,5 +11,7 @@ import com.liuche.order.model.ProductOrder;
 */
 public interface ProductOrderService extends IService<ProductOrder> {
 
-    boolean addOrder(OrderDTO dto);
+    boolean confirmOrder(OrderDTO dto);
+
+    String queryProductStatus(String outTradeNo);
 }

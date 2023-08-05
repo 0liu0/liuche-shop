@@ -33,10 +33,14 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
      * @param dto
      * @return
      */
-    @Override
-    public boolean addOrder(OrderDTO dto) {
+    public boolean confirmOrder(OrderDTO dto) {
 
         return true;
+    }
+
+    @Override
+    public String queryProductStatus(String outTradeNo) {
+        return this.baseMapper.queryProductStatus(outTradeNo);
     }
 }
 

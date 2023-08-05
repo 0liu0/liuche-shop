@@ -2,6 +2,7 @@ package com.liuche.coupon.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.liuche.common.constants.RedisConstant;
+import com.liuche.common.dto.LockCouponRecordDTO;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
@@ -97,6 +98,12 @@ public class CouponController {
     public JsonData getInitCoupon(@PathVariable long userId) {
         couponService.initUserCoupon(userId);
         return JsonData.ok("新用户优惠券发送成功！");
+    }
+
+    @ApiOperation("RPC-订单服务调用锁定优惠券记录")
+    @PostMapping("/lock_records")
+    public JsonData lockCouponRecords(@ApiParam("锁定优惠券") @RequestBody LockCouponRecordDTO dto) {
+        return couponRecordService.lockCouponRecords(dto);
     }
 
 

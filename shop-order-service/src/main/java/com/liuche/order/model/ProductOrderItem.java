@@ -8,7 +8,7 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 
+ * 用户
  * @TableName product_order_item
  */
 @TableName(value ="product_order_item")

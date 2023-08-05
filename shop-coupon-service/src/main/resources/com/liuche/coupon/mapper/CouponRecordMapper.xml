@@ -28,4 +28,18 @@
 #         order_id,price,condition_price,
 #         update_time,is_delete
     </sql>
+    <!--批量锁定用户id-->
+    <update id="updateUseStateByIdBatch">
+        update coupon_record set use_state = 'USED',order_id=#{outTradeNo} where use_state='NEW' and user_id=#{userId}
+        and id in
+        <foreach collection="recordIdList" index="index" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+
+    </update>
+    <update id="releaseCoupon">
+        update coupon_record
+        set use_state = 'NEW'
+        where id = #{couponRecordId}
+    </update>
 </mapper>

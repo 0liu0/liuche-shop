@@ -2,6 +2,9 @@ package com.liuche.coupon.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.liuche.coupon.model.CouponRecord;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author 70671
@@ -11,6 +14,9 @@ import com.liuche.coupon.model.CouponRecord;
 */
 public interface CouponRecordMapper extends BaseMapper<CouponRecord> {
 
+    int updateUseStateByIdBatch(@Param("recordIdList") List<Long> recordIdList,@Param("userId") Long userId,@Param("outTradeNo") String outTradeNo);
+
+    int releaseCoupon(@Param("couponRecordId") Long couponRecordId);
 }
 
 

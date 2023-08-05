@@ -1,6 +1,9 @@
 package com.liuche.coupon.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.liuche.common.dto.LockCouponRecordDTO;
+import com.liuche.common.model.CouponRecordMessage;
+import com.liuche.common.util.JsonData;
 import com.liuche.coupon.model.CouponRecord;
 
 import java.util.Map;
@@ -13,4 +16,8 @@ import java.util.Map;
 public interface CouponRecordService extends IService<CouponRecord> {
 
     Map<String, Object> getPage(int page, int size);
+
+    JsonData lockCouponRecords(LockCouponRecordDTO dto);
+
+    boolean checkOrderOfCoupon(CouponRecordMessage msg);
 }

@@ -11,6 +11,7 @@ import com.liuche.order.model.ProductOrder;
 */
 public interface ProductOrderMapper extends BaseMapper<ProductOrder> {
 
+    String queryProductStatus(String outTradeNo);
 }
 
 

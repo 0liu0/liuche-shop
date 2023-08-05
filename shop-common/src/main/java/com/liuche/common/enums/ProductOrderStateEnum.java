@@ -1,4 +1,4 @@
-package com.liuche.order.enums;
+package com.liuche.common.enums;
 
 /**
  * @Author 刘彻
@@ -13,7 +13,6 @@ public enum ProductOrderStateEnum {
      * 未支付订单
      */
     NEW,
-
 
     /**
      * 已经支付订单
