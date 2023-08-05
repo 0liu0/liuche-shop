@@ -1,6 +1,9 @@
 package com.liuche.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.liuche.common.dto.LockProductDTO;
+import com.liuche.common.model.ProductMessage;
+import com.liuche.common.util.JsonData;
 import com.liuche.product.model.Product;
 
 import java.util.Map;
@@ -13,4 +16,8 @@ import java.util.Map;
 public interface ProductService extends IService<Product> {
 
     Map<String,Object> selectByPage(int page, int size);
+
+    JsonData lockProductStock(LockProductDTO dto);
+
+    boolean checkOrderOfProduct(ProductMessage msg);
 }

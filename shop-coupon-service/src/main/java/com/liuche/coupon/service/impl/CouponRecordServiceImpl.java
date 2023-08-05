@@ -114,6 +114,7 @@ public class CouponRecordServiceImpl extends ServiceImpl<CouponRecordMapper, Cou
     }
 
     @Override
+    @Transactional
     public boolean checkOrderOfCoupon(CouponRecordMessage msg) {
         // 查询couponTask是否存在
         CouponTask couponTask = couponTaskService.getOne(new QueryWrapper<CouponTask>().eq("id", msg.getTaskId()));
@@ -144,11 +145,10 @@ public class CouponRecordServiceImpl extends ServiceImpl<CouponRecordMapper, Cou
             couponTaskMapper.updateRecordTaskCancel(msg.getTaskId());
             couponRecordMapper.releaseCoupon(couponTask.getCouponRecordId());
             log.info("订单不存在或已取消：{}", msg);
-            return true;
         } else {
             log.warn("工作单状态不是LOCK，state={}，消息体={}",couponTask.getLockState(),msg);
-            return true;
         }
+        return true;
     }
 }
 

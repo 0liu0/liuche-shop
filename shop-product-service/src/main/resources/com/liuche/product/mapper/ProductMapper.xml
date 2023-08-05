@@ -24,4 +24,14 @@
 #         stock,create_time,lock_stock,
 #         update_time,is_delete
     </sql>
+    <update id="lockStock">
+        update product
+        set lock_stock=lock_stock + #{buyNum}
+        where id = #{id}
+    </update>
+    <update id="releaseProduct">
+        update product
+        set lock_stock=lock_stock - #{buyNum}
+        where id = #{productId}
+    </update>
 </mapper>

@@ -21,4 +21,14 @@
 #         product_name,lock_state,out_trade_no,
 #         create_time,update_time,is_delete
     </sql>
+    <update id="confirmProduct">
+        update product_task
+        set lock_state='FINISH'
+        where id = #{taskId}
+    </update>
+    <update id="updateProductTaskCancel">
+        update product_task
+        set lock_state='CANCEL'
+        where id = #{taskId}
+    </update>
 </mapper>

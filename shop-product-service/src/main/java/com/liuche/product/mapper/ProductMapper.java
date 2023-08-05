@@ -2,6 +2,7 @@ package com.liuche.product.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.liuche.product.model.Product;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 70671
@@ -11,6 +12,9 @@ import com.liuche.product.model.Product;
 */
 public interface ProductMapper extends BaseMapper<Product> {
 
+    int lockStock(@Param("id") Long id, @Param("buyNum") int buyNum);
+
+    int releaseProduct(@Param("productId") Long productId,@Param("buyNum") Integer buyNum);
 }
 
 

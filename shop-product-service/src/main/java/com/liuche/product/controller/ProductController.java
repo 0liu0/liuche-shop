@@ -1,6 +1,8 @@
 package com.liuche.product.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.liuche.common.dto.LockCouponRecordDTO;
+import com.liuche.common.dto.LockProductDTO;
 import com.liuche.common.util.CopyUtil;
 import com.liuche.common.util.JsonData;
 import com.liuche.product.model.Banner;
@@ -8,11 +10,9 @@ import com.liuche.product.service.ProductService;
 import com.liuche.product.vo.BannerVO;
 import com.liuche.product.vo.ProductVO;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Copy;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -42,5 +42,10 @@ public class ProductController {
     public JsonData getDetail(@PathVariable long productId) {
         ProductVO productVO = CopyUtil.copy(productService.getById(productId), ProductVO.class);
         return JsonData.ok(productVO);
+    }
+    @ApiOperation("RPC-订单服务调用锁定优惠券记录")
+    @PostMapping("/lock_stock")
+    public JsonData lockCouponRecords(@ApiParam("锁定优惠券") @RequestBody LockProductDTO dto) {
+        return productService.lockProductStock(dto);
     }
 }
