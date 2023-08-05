@@ -3,6 +3,16 @@ server:
 spring:
   application:
     name: shop-order-service
+  rabbitmq:
+    host: 192.168.253.17
+    port: 5672
+    virtual-host: /
+    password: guest
+    username: guest
+    #开启手动确认消息
+    listener:
+      simple:
+        acknowledge-mode: manual
   cloud:
     #注册中心地址
     nacos:

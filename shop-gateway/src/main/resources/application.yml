@@ -1,0 +1,11 @@
+spring:
+  rabbitmq:
+    host: 192.168.253.17
+    port: 5672
+    virtual-host: /
+    password: guest
+    username: guest
+    #开启手动确认消息
+    listener:
+      simple:
+        acknowledge-mode: manual
