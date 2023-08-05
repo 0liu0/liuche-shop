@@ -34,7 +34,7 @@ public class CouponMQListener {
     }
 
     @RabbitHandler
-    public void releaseCouponRecord(CouponRecordMessage msg, Message message, Channel channel) throws IOException {
+    public void releaseCouponRecord(CouponRecordMessage msg, Message message, Channel channel) throws IOException, InterruptedException {
         log.info("监听到消息：消息内容->{}", msg);
         long tag = message.getMessageProperties().getDeliveryTag();
         // 校验订单状态，执行对应的操作
@@ -44,9 +44,11 @@ public class CouponMQListener {
                 channel.basicAck(tag, false);
             } else {
                 log.error("释放优惠券失败 flag=false,{}", msg);
+                Thread.sleep(20);
                 channel.basicReject(tag, true);
             }
         } catch (IOException e) {
+            Thread.sleep(20);
             log.error("释放优惠券异常：{}，msg：{}", e, msg);
             channel.basicReject(tag,true);
         }
