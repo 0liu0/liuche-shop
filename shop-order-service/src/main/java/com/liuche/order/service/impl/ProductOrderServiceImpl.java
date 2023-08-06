@@ -25,6 +25,7 @@ import com.liuche.order.vo.CartItemVO;
 import com.liuche.order.vo.CartVO;
 import com.liuche.order.vo.CouponRecordVO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -47,6 +48,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
     private CouponFeign couponFeign;
     @Resource
     private ProductFeign productFeign;
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * service编写伪代码
@@ -121,6 +124,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         }).collect(Collectors.toList());
         productFeign.lockStockRecords(new LockProductDTO(orderOutTradeNo,orderItemList));
         // 发送延迟队，判断持久未支付的订单
+
+
         return true;
     }
 
