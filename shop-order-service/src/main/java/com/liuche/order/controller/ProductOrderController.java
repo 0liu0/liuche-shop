@@ -27,7 +27,7 @@ public class ProductOrderController {
         }else { // 创建订单失败
             // 返回给前端创建失败
         }
-        return JsonData.ok();
+        return JsonData.ok("订单成功生成！");
     }
     @GetMapping("/query_state/{outTradeNo}")
     public JsonData queryState(@PathVariable String outTradeNo) {

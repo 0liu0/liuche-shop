@@ -23,6 +23,6 @@ public interface ProductFeign {
 
     @PostMapping("/api/v1/cart/user/cart/reduce")
     JsonData reduceCartOps(@RequestBody List<Long> idList);
-    @PostMapping("/api/v1/cart/lock_stock")
+    @PostMapping("/api/v1/product/lock_stock")
     JsonData lockStockRecords(@ApiParam("锁定优惠券") @RequestBody LockProductDTO dto);
 }

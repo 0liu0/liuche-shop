@@ -5,17 +5,17 @@ import com.baomidou.mybatisplus.annotation.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+
 import lombok.Data;
 
 /**
- * 
  * @TableName coupon_record
  */
-@TableName(value ="coupon_record")
+@TableName(value = "coupon_record")
 @Data
 public class CouponRecord implements Serializable {
     /**
-     * 
+     *
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -91,6 +91,12 @@ public class CouponRecord implements Serializable {
      */
     @TableField(value = "update_time")
     private Date updateTime;
+
+    /**
+     * 订单唯一编号
+     */
+    @TableField(value = "out_trade_no")
+    private String outTradeNo;
 
     /**
      * 是否删除

@@ -66,11 +66,15 @@ public class CouponRecordVO implements Serializable {
      * 订单id
      */
     private Long orderId;
-
     /**
      * 抵扣价格
      */
     private BigDecimal price;
+
+    /**
+     * 订单唯一编号
+     */
+    private String outTradeNo;
 
     /**
      * 满多少才可以使用

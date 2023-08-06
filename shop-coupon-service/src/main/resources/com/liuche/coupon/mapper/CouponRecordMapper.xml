@@ -15,6 +15,7 @@
             <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
             <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
             <result property="orderId" column="order_id" jdbcType="BIGINT"/>
+            <result property="outTradeNo" column="out_trade_no" jdbcType="VARCHAR"/>
             <result property="price" column="price" jdbcType="DECIMAL"/>
             <result property="conditionPrice" column="condition_price" jdbcType="DECIMAL"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
@@ -25,12 +26,12 @@
 #         id,coupon_id,create_time,
 #         use_state,user_id,user_name,
 #         coupon_title,start_time,end_time,
-#         order_id,price,condition_price,
+#         order_id,price,condition_price,out_trade_no,
 #         update_time,is_delete
     </sql>
     <!--批量锁定用户id-->
     <update id="updateUseStateByIdBatch">
-        update coupon_record set use_state = 'USED',order_id=#{outTradeNo} where use_state='NEW' and user_id=#{userId}
+        update coupon_record set use_state = 'USED',out_trade_no=#{outTradeNo} where use_state='NEW' and user_id=#{userId}
         and id in
         <foreach collection="recordIdList" index="index" item="id" separator="," open="(" close=")">
             #{id}

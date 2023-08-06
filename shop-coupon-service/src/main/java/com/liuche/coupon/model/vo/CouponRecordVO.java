@@ -73,6 +73,11 @@ public class CouponRecordVO implements Serializable {
     private BigDecimal price;
 
     /**
+     * 订单唯一编号
+     */
+    private String outTradeNo;
+
+    /**
      * 满多少才可以使用
      */
     private BigDecimal conditionPrice;

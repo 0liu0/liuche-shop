@@ -100,7 +100,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         // 生成订单
         ProductOrder order = new ProductOrder();
         order.setOutTradeNo(orderOutTradeNo);
-        order.setState(ProductOrderStateEnum.NEW.name());
+        order.setState(ProductOrderStateEnum.CANCEL.name());
         order.setTotalAmount(dto.getTotalAmount());
         order.setPayAmount(dto.getRealPayAmount());
         order.setPayType(dto.getPayType());
@@ -113,15 +113,14 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         // 锁定优惠券和商品库存信息
         couponFeign.lockCouponRecords(new LockCouponRecordDTO(RequestContext.getUserId(), Arrays.asList(dto.getCouponRecordIds()), orderOutTradeNo));
         List<CartItemVO> cartItems = cartMini.getCartItems();
-        List<OrderItemDTO> list = cartItems.stream().map(item -> {
+        List<OrderItemDTO> orderItemList = cartItems.stream().map(item -> {
             OrderItemDTO orderItemDTO = new OrderItemDTO();
             orderItemDTO.setProductId(item.getProductId());
             orderItemDTO.setBuyNum(item.getBuyNum());
             return orderItemDTO;
         }).collect(Collectors.toList());
-        productFeign.lockStockRecords(new LockProductDTO(orderOutTradeNo,list));
+        productFeign.lockStockRecords(new LockProductDTO(orderOutTradeNo,orderItemList));
         // 发送延迟队，判断持久未支付的订单
-
         return true;
     }
 
@@ -141,7 +140,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
             if (totalPrice.compareTo(conditionPrice) < 0) {
                 throw new BusinessException(ExceptionCode.PARAMS_ERROR, "优惠券不可用，未到满减价格");
             }
-            reduceMoney.add(recordVO.getPrice());
+            reduceMoney = reduceMoney.add(recordVO.getPrice());
         }
         // 满减的情况
         if (totalPrice.compareTo(reduceMoney) < 0) {
