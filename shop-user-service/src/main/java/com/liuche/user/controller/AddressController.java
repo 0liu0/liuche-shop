@@ -43,12 +43,12 @@ public class AddressController {
         return i == 1 ? JsonData.ok("成功添加一个收获地址") : JsonData.error("添加错误");
     }
 
-    @GetMapping("/get-pne/address/{id}")
+    @GetMapping("/get-one/address/{id}")
     @ApiOperation(value = "查询指定的收货地址")
-    public JsonData getOneAddress(@PathVariable @ApiParam(value = "需要查询的地址ID") String id) {
+    public JsonData getOneAddress(@PathVariable @ApiParam(value = "需要查询的地址ID") Long id) {
         Address address = addressService.getOne(new QueryWrapper<Address>()
                 .eq("user_id", RequestContext.getUserId())
-                .eq("id", Long.parseLong(id)));
+                .eq("id", id));
         AddressInfoResp infoResp = CopyUtil.copy(address, AddressInfoResp.class);
         return address == null ? JsonData.error("未查到") : JsonData.ok(infoResp);
     }

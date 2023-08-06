@@ -1,11 +1,18 @@
 package com.liuche.order.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liuche.common.util.JsonData;
 import com.liuche.order.dto.OrderDTO;
+import com.liuche.order.feign.AddressFeign;
 import com.liuche.order.mapper.ProductOrderMapper;
 import com.liuche.order.model.ProductOrder;
 import com.liuche.order.service.ProductOrderService;
+import com.liuche.order.vo.AddressInfoResp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 
 /**
 * @author 70671
@@ -13,9 +20,11 @@ import org.springframework.stereotype.Service;
 * @createDate 2023-08-03 11:43:32
 */
 @Service
+@Slf4j
 public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, ProductOrder>
     implements ProductOrderService {
-
+    @Resource
+    private AddressFeign addressFeign;
     /**
      * service编写伪代码
      * 防重提交
@@ -34,7 +43,12 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
      * @return
      */
     public boolean confirmOrder(OrderDTO dto) {
-
+        log.info("前端传来的信息："+dto);
+        // 得到用户收货地址地址
+        JsonData address = addressFeign.getOneAddress(dto.getAddressId());
+        log.info("address:{}",address);
+        AddressInfoResp addressInfo = address.getData(new TypeReference<>(){});
+        log.info("得到用户收货地址信息：{}",addressInfo);
         return true;
     }
 

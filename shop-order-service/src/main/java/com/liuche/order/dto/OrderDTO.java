@@ -18,50 +18,38 @@ import java.math.BigDecimal;
 @ApiModel(value = "创建订单对象")
 public class OrderDTO {
     /**
-     * NEW 未支付订单,PAY已经支付订单,CANCEL超时取消订单
+     * 订单优惠券id
      */
-    @ApiModelProperty(value = "订单状态",example = "NEW")
-    private String state;
-
+    @ApiModelProperty(value = "订单优惠券id",example = "[1]")
+    private Long[] couponRecordIds;
     /**
-     * 订单总金额
+     * 商品id
      */
-    @ApiModelProperty(value = "订单总金额",example = "520")
-    private BigDecimal totalAmount;
-
+    @ApiModelProperty(value = "商品id",example = "[1]")
+    private Long[] productIds;
     /**
-     * 订单实际支付价格
+     * 付款方式
      */
-    @ApiModelProperty(value = "订单实际支付价格",example = "520")
-    private BigDecimal payAmount;
-
-    /**
-     * 支付类型，微信-银行-支付宝
-     */
-    @ApiModelProperty(value = "支付类型，微信-银行-支付宝",example = "WECHAT")
+    @ApiModelProperty(value = "付款方式",example = "ALIPAY")
     private String payType;
-
     /**
-     * 昵称
+     * 付款环境 H5/APP
      */
-    @ApiModelProperty(value = "昵称",example = "大大怪")
-    private String nickname;
-
+    @ApiModelProperty(value = "付款环境 H5/APP",example = "H5")
+    private String clientType;
     /**
-     * 头像
+     * 收货地址id
      */
-    @ApiModelProperty(value = "头像",example = "https://file.xdclass.net/video/2020/alibabacloud/zt-alibabacloud.png")
-    private String headImg;
-
+    @ApiModelProperty(value = "地址ID",example = "1")
+    private Long addressId;
     /**
-     * 订单类型 DAILY普通单，PROMOTION促销订单
+     * 总该付款的价格
      */
-    @ApiModelProperty(value = "订单类型 DAILY普通单，PROMOTION促销订单",example = "PROMOTION")
-    private String orderType;
-
+    @ApiModelProperty(value = "总该付款的价格",example = "520")
+    private BigDecimal totalAmount;
     /**
-     * 收货地址json存储
+     * 用户实际付款的价格
      */
-    @ApiModelProperty(value = "收货地址json存储",example = "火星")
-    private String receiverAddress;
+    @ApiModelProperty(value = "用户实际付款的价格",example = "520")
+    private BigDecimal realPayAmount;
 }

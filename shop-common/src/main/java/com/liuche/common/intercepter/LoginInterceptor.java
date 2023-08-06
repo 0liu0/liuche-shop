@@ -47,11 +47,11 @@ public class LoginInterceptor implements HandlerInterceptor {
                 String name = (String) claims.get("name");
                 // 判断地址是否正确
                 String remoteIp = CommonUtil.getRemoteIp(request);
-                if (!remoteIp.equals(ip)) {
-                    log.info("ip==remoteIp?"+false);
-                    CommonUtil.sendJsonMessage(response, JsonData.error("当前登录已失效请重新登录"));
-                    return false;
-                }
+//                if (!remoteIp.equals(ip)) {
+//                    log.info("ip==remoteIp?"+false);
+//                    CommonUtil.sendJsonMessage(response, JsonData.error("当前登录已失效请重新登录"));
+//                    return false;
+//                }
                 // 保存用户id到ThreadLocal
                 RequestContext.setUserId(id);
                 log.info("拦截到了如下信息");

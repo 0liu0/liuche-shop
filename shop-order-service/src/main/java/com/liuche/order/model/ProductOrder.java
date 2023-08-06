@@ -66,7 +66,7 @@ public class ProductOrder implements Serializable {
      * 用户id
      */
     @TableField(value = "user_id")
-    private Integer userId;
+    private Long userId;
 
     /**
      * 订单类型 DAILY普通单，PROMOTION促销订单
