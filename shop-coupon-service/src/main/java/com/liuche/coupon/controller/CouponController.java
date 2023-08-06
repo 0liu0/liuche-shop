@@ -5,9 +5,11 @@ import com.liuche.common.constants.RedisConstant;
 import com.liuche.common.dto.LockCouponRecordDTO;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
+import com.liuche.common.util.CopyUtil;
 import com.liuche.common.util.JsonData;
 import com.liuche.common.util.RequestContext;
 import com.liuche.coupon.model.CouponRecord;
+import com.liuche.coupon.model.vo.CouponRecordVO;
 import com.liuche.coupon.model.vo.CouponVO;
 import com.liuche.coupon.service.CouponRecordService;
 import com.liuche.coupon.service.CouponService;
@@ -84,13 +86,13 @@ public class CouponController {
      */
     @ApiOperation("查询优惠券记录信息")
     @GetMapping("/detail/{record_id}")
-    public JsonData findUserCouponRecordById(@PathVariable("record_id")long recordId ){
+    public JsonData findUserCouponRecordById(@PathVariable("record_id")long recordId){
         long userId = RequestContext.getUserId();
         QueryWrapper<CouponRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id",userId);
         queryWrapper.eq("coupon_id",recordId);
         CouponRecord couponRecordVO = couponRecordService.getOne(queryWrapper);
-        return  couponRecordVO == null? JsonData.buildResult(ExceptionCode.COUPON_NO_EXITS):JsonData.ok(couponRecordVO);
+        return  couponRecordVO == null? JsonData.buildResult(ExceptionCode.COUPON_NO_EXITS):JsonData.ok(CopyUtil.copy(couponRecordVO, CouponRecordVO.class));
     }
 
     @ApiOperation("RPC-新用户领券接口")
