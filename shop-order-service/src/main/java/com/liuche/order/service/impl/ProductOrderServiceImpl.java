@@ -106,11 +106,6 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         CartVO cartMini = cartProduct.getData(new TypeReference<>() {
         }); // 用户购买的商品
         this.checkCartMini(cartMini, dto, recordList); // 经过了这层说明该订单准确无误
-        // 减购物车中的库存
-        JsonData data = productFeign.reduceCartOps(idList);
-        if (data.getCode() != 0) {
-            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "购物车商品状态报错");
-        }
         // 生成订单
         ProductOrder order = new ProductOrder();
         order.setOutTradeNo(orderOutTradeNo);
@@ -134,6 +129,11 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
             return orderItemDTO;
         }).collect(Collectors.toList());
         productFeign.lockStockRecords(new LockProductDTO(orderOutTradeNo, orderItemList));
+        // 减购物车中的库存
+        JsonData data = productFeign.reduceCartOps(idList);
+        if (data.getCode() != 0) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "购物车商品状态报错");
+        }
         // 发送延迟队，判断持久未支付的订单
         OrderMessage orderMessage = new OrderMessage();
         orderMessage.setOutTradeNo(orderOutTradeNo);
