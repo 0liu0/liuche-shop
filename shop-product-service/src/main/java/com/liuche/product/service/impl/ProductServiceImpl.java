@@ -13,14 +13,18 @@ import com.liuche.common.model.CouponRecordMessage;
 import com.liuche.common.model.ProductMessage;
 import com.liuche.common.util.CopyUtil;
 import com.liuche.common.util.JsonData;
+import com.liuche.common.util.RequestContext;
 import com.liuche.product.config.MQConfig;
+import com.liuche.product.dto.AddProductDTO;
 import com.liuche.product.feign.OrderFeign;
 import com.liuche.product.mapper.ProductMapper;
 import com.liuche.product.mapper.ProductTaskMapper;
 import com.liuche.product.model.Product;
 import com.liuche.product.model.ProductTask;
+import com.liuche.product.service.CartService;
 import com.liuche.product.service.ProductService;
 import com.liuche.product.service.ProductTaskService;
+import com.liuche.product.vo.CartItemVO;
 import com.liuche.product.vo.ProductVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -57,6 +61,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
     private OrderFeign orderFeign;
     @Resource
     private ProductMapper productMapper;
+    @Resource
+    private CartService cartService;
 
     /**
      * 分页查询商品信息
@@ -109,8 +115,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
                 ProductMessage message = new ProductMessage();
                 message.setOutTradeNo(outTradeNo);
                 message.setTaskId(productTask.getId());
+                message.setUserId(RequestContext.getUserId()); // 新增用户id
                 rabbitTemplate.convertAndSend(mqConfig.getEventExchange(), mqConfig.getStockReleaseDelayRoutingKey(), message);
-                log.info("优惠券锁定消息发送成功！{}", message);
+                log.info("商品锁定消息发送成功！{}", message);
             } else {
                 throw new BusinessException(ExceptionCode.PARAMS_ERROR, "锁定商品的库存失败");
             }
@@ -147,10 +154,21 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
             }
             // 修改couponTask为CANCEL
             productTaskMapper.updateProductTaskCancel(msg.getTaskId());
-            productMapper.releaseProduct(task.getProductId(),task.getBuyNum());
+            productMapper.releaseProduct(task.getProductId(), task.getBuyNum());
+            // 将取消支付的商品恢复至用户的购物车中
+            AddProductDTO dto = new AddProductDTO();
+            dto.setProductId(task.getProductId());
+            dto.setBuyNum(task.getBuyNum());
+            // 恢复至用户购物车中
+            boolean flag = cartService.addProduct(dto);
+            log.info("单子失效，恢复商品至购物车");
+            if (!flag) {
+                log.info("商品恢复至购物车失败，请重试！");
+                return false;
+            }
             log.info("订单不存在或已取消：{}", msg);
-        }else {
-            log.warn("工作单状态不是LOCK，state={}，消息体={}",task.getLockState(),msg);
+        } else {
+            log.warn("工作单状态不是LOCK，state={}，消息体={}", task.getLockState(), msg);
         }
         return true;
     }

@@ -1,6 +1,7 @@
 package com.liuche.product.mq;
 
 import com.liuche.common.model.ProductMessage;
+import com.liuche.common.util.RequestContext;
 import com.liuche.product.service.ProductService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,8 @@ public class ProductMQListener {
     public void releaseStock(ProductMessage msg, Message message, Channel channel) throws IOException, InterruptedException {
         log.info("监听到消息：消息内容->{}", msg);
         long tag = message.getMessageProperties().getDeliveryTag();
+        // 设置RequestContext中的userId，后续操作会用到
+        RequestContext.setUserId(msg.getUserId());
         // 校验订单状态，执行对应的操作
         boolean flag = productService.checkOrderOfProduct(msg);
         try {
@@ -51,6 +54,9 @@ public class ProductMQListener {
             Thread.sleep(20);
             log.error("释放优惠券异常：{}，msg：{}", e, msg);
             channel.basicReject(tag,true);
+        }finally {
+            // 移除RequestContext里面的userId免得会发生内存泄露
+            RequestContext.remove();
         }
     }
 

@@ -3,6 +3,8 @@ server:
 spring:
   application:
     name: shop-product-service
+  main:
+    allow-circular-references: true
   rabbitmq:
     host: 192.168.253.17
     port: 5672

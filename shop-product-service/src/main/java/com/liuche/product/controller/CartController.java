@@ -6,13 +6,16 @@ import com.liuche.common.util.JsonData;
 import com.liuche.product.dto.AddProductDTO;
 import com.liuche.product.dto.UpdateProductDTO;
 import com.liuche.product.service.CartService;
+import com.liuche.product.vo.CartItemVO;
 import com.liuche.product.vo.CartVO;
+import com.liuche.product.vo.ProductVO;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @Author 刘彻
@@ -53,17 +56,31 @@ public class CartController {
         return JsonData.ok(cartVO);
     }
 
+    @ApiOperation("得到用户购物车里面的商品信息")
+    @PostMapping("/user/cart/list")
+    public JsonData getUserCartProductByIds(@RequestBody List<Long> prductIdList) {
+        CartVO cartMini = cartService.getUserCartProductInfo(prductIdList);
+        return JsonData.ok(cartMini);
+    }
+
+    @ApiOperation("减去用户购买的商品的库存")
+    @PostMapping("/user/cart/reduce")
+    JsonData reduceCartOps(@RequestBody List<Long> idList) {
+        boolean flag = cartService.reduceCartOps(idList);
+        return flag?JsonData.ok():JsonData.error("删除购物车商品错误");
+    }
+
     @ApiOperation("从购物车删除商品")
     @GetMapping("/del/product/{id}")
     public JsonData delProduct(@PathVariable String id) {
         boolean flag = cartService.delProduct(id);
-        return flag?JsonData.ok("删除成功"): JsonData.error("未找到此商品，或以删除");
+        return flag ? JsonData.ok("删除成功") : JsonData.error("未找到此商品，或以删除");
     }
 
     @ApiOperation("从购物车修改商品信息")
     @PostMapping("/update/product")
     public JsonData updateProduct(@Valid @RequestBody UpdateProductDTO productDTO) {
-        if (productDTO==null) {
+        if (productDTO == null) {
             return JsonData.error("错误！");
         }
         // 参数校验 todo 购买数量必须大于等于1

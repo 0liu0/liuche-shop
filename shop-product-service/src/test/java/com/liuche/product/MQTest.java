@@ -8,6 +8,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
+
 /**
  * @Author 刘彻
  * @Date 2023/8/5 22:22
@@ -32,7 +34,14 @@ public class MQTest {
         ProductMessage productMessage = new ProductMessage();
         productMessage.setTaskId(1L);
         productMessage.setOutTradeNo("123456abc");
+        productMessage.setUserId(5L);
         rabbitTemplate.convertAndSend(mqConfig.getEventExchange(),mqConfig.getStockReleaseDelayRoutingKey(),productMessage);
         log.info("商品库存锁定信息发送成功:{}",productMessage);
+    }
+    @Test
+    public void testBigDecimal() {
+        BigDecimal a = BigDecimal.ZERO;
+        BigDecimal b = BigDecimal.valueOf(0.01);
+        System.out.println(a.compareTo(b));
     }
 }

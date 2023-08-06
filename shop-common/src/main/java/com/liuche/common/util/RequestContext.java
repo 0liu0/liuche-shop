@@ -15,5 +15,8 @@ public class RequestContext implements Serializable {
     public static void setUserId(long id) {
         RequestContext.remoteAddr.set(id);
     }
+    public static void remove() {
+        RequestContext.remoteAddr.remove();
+    }
 
 }

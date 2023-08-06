@@ -1,4 +1,4 @@
-package com.liuche.product.vo;
+package com.liuche.order.vo;
 
 import lombok.Data;
 import lombok.ToString;

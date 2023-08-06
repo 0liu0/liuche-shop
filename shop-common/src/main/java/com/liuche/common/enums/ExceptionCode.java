@@ -31,6 +31,10 @@ public enum ExceptionCode {
     ACCOUNT_UNREGISTER(250002, "账号不存在"),
     ACCOUNT_PWD_ERROR(250003, "账号或者密码错误"),
     /**
+     * 地址
+     */
+    USER_ADDRESS_ERROR(280000,"用户地址不存在"),
+    /**
      * 系统
      */
     SYSTEM_ERROR(260000, "系统内部异常"),

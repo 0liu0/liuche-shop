@@ -2,8 +2,11 @@ package com.liuche.product.service;
 
 import com.liuche.product.dto.AddProductDTO;
 import com.liuche.product.dto.UpdateProductDTO;
+import com.liuche.product.vo.CartItemVO;
 import com.liuche.product.vo.CartVO;
+import com.liuche.product.vo.ProductVO;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,4 +26,8 @@ public interface CartService {
     boolean delProduct(String id);
 
     boolean updateCartProductInfo(UpdateProductDTO productDTO);
+
+    CartVO getUserCartProductInfo(List<Long> prductIdList);
+
+    boolean reduceCartOps(List<Long> idList);
 }

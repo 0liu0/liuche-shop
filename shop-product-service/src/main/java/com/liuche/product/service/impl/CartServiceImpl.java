@@ -16,6 +16,7 @@ import com.liuche.product.vo.CartVO;
 import com.liuche.product.vo.ProductVO;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @Author 刘彻
@@ -111,7 +113,7 @@ public class CartServiceImpl implements CartService {
         // 得到用户的购物车
         BoundHashOperations<String, Object, Object> userCartOps = getUserCartOps();
         Long delete = userCartOps.delete(id);
-        log.info("delete->"+delete);
+        log.info("delete->" + delete);
         return delete != 0;
     }
 
@@ -120,12 +122,51 @@ public class CartServiceImpl implements CartService {
         // 得到用户的购物车
         BoundHashOperations<String, Object, Object> userCartOps = getUserCartOps();
         CartItemVO itemVO = (CartItemVO) userCartOps.get(String.valueOf(productDTO.getProductId()));
-        if (itemVO==null) {
-            throw new BusinessException(ExceptionCode.PARAMS_ERROR,"您的购物车没有此商品");
+        if (itemVO == null) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "您的购物车没有此商品");
         }
         itemVO.setBuyNum(productDTO.getBuyNum());
         // 保存至redis
-        userCartOps.put(String.valueOf(productDTO.getProductId()),itemVO);
+        userCartOps.put(String.valueOf(productDTO.getProductId()), itemVO);
+        return true;
+    }
+
+    @Override
+    public CartVO getUserCartProductInfo(List<Long> prductIdList) {
+        CartVO res = new CartVO();
+        // 得到用户购物车的所有信息
+        BoundHashOperations<String, Object, Object> userCartOps = this.getUserCartOps();
+        // 得到新的商品信息
+        List<Product> products = productService.listByIds(prductIdList);
+        List<CartItemVO> list = products.stream().map(item -> {
+            // 查看库存数量是否符合 （写在这儿确实不太妥当，不过先这样吧）
+            CartItemVO itemVO = (CartItemVO) userCartOps.get(String.valueOf(item.getId()));
+            if (item.getStock() - item.getLockStock() < itemVO.getBuyNum()) {
+                throw new BusinessException(ExceptionCode.PARAMS_ERROR, "库存不足");
+            }
+            CartItemVO cartItemVO = new CartItemVO();
+            cartItemVO.setProductId(item.getId());
+            cartItemVO.setAmount(item.getPrice());
+            cartItemVO.setProductTitle(item.getTitle());
+            cartItemVO.setProductImg(item.getCoverImg());
+            cartItemVO.setBuyNum(itemVO.getBuyNum());
+            return cartItemVO;
+        }).collect(Collectors.toList());
+        res.setCartItems(list);
+        return res;
+    }
+
+    @Override
+    public boolean reduceCartOps(List<Long> idList) {
+        // 得到用户购物车的所有信息
+        try {
+            BoundHashOperations<String, Object, Object> userCartOps = this.getUserCartOps();
+            for (Long id : idList) {
+                userCartOps.delete(String.valueOf(id));
+            }
+        } catch (Exception e) {
+            return false;
+        }
         return true;
     }
 

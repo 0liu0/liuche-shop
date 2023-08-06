@@ -27,5 +27,9 @@ public class ProductMessage {
      * 库存锁定工作单id
      */
     private Long taskId;
+    /**
+     * 用户id
+     */
+    private Long userId;
 
 }
