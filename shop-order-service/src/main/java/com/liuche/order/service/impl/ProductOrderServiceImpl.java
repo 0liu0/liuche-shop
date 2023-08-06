@@ -1,4 +1,5 @@
 package com.liuche.order.service.impl;
+import java.util.Date;
 
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -7,6 +8,7 @@ import com.liuche.common.dto.LockProductDTO;
 import com.liuche.common.dto.OrderItemDTO;
 import com.liuche.common.enums.CouponStateEnum;
 import com.liuche.common.enums.ExceptionCode;
+import com.liuche.common.enums.ProductOrderStateEnum;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.CommonUtil;
 import com.liuche.common.util.JsonData;
@@ -95,6 +97,19 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         if (data.getCode()!=0) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR,"购物车商品状态报错");
         }
+        // 生成订单
+        ProductOrder order = new ProductOrder();
+        order.setOutTradeNo(orderOutTradeNo);
+        order.setState(ProductOrderStateEnum.NEW.name());
+        order.setTotalAmount(dto.getTotalAmount());
+        order.setPayAmount(dto.getRealPayAmount());
+        order.setPayType(dto.getPayType());
+        order.setNickname("刘彻");
+        order.setHeadImg("https://www.baidu.com");
+        order.setUserId(RequestContext.getUserId());
+        order.setOrderType("PROMOTION");
+        order.setReceiverAddress(addressInfo.toString());
+        this.save(order);
         // 锁定优惠券和商品库存信息
         couponFeign.lockCouponRecords(new LockCouponRecordDTO(RequestContext.getUserId(), Arrays.asList(dto.getCouponRecordIds()), orderOutTradeNo));
         List<CartItemVO> cartItems = cartMini.getCartItems();
