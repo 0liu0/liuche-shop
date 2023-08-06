@@ -43,9 +43,9 @@ public class ProductController {
         ProductVO productVO = CopyUtil.copy(productService.getById(productId), ProductVO.class);
         return JsonData.ok(productVO);
     }
-    @ApiOperation("RPC-订单服务调用锁定优惠券记录")
+    @ApiOperation("RPC-订单服务调用锁定库存信息")
     @PostMapping("/lock_stock")
-    public JsonData lockCouponRecords(@ApiParam("锁定优惠券") @RequestBody LockProductDTO dto) {
+    public JsonData lockStockRecords(@ApiParam("锁定优惠券") @RequestBody LockProductDTO dto) {
         return productService.lockProductStock(dto);
     }
 }

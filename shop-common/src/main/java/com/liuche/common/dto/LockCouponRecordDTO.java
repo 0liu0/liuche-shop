@@ -1,6 +1,7 @@
 package com.liuche.common.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
  * @Description: 订单服务调用优惠券服务的请求体
  */
 @Data
+@NoArgsConstructor
 public class LockCouponRecordDTO implements Serializable {
     private static final long serialVersionUID = 4275631747614415214L;
     /**
@@ -29,4 +31,9 @@ public class LockCouponRecordDTO implements Serializable {
      */
     private String orderOutTradeNo;
 
+    public LockCouponRecordDTO(Long userId, List<Long> lockCouponRecordIds, String orderOutTradeNo) {
+        this.userId = userId;
+        this.lockCouponRecordIds = lockCouponRecordIds;
+        this.orderOutTradeNo = orderOutTradeNo;
+    }
 }

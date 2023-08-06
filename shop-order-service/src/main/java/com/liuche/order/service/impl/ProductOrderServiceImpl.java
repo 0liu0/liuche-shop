@@ -2,11 +2,15 @@ package com.liuche.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liuche.common.dto.LockCouponRecordDTO;
+import com.liuche.common.dto.LockProductDTO;
+import com.liuche.common.dto.OrderItemDTO;
 import com.liuche.common.enums.CouponStateEnum;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.CommonUtil;
 import com.liuche.common.util.JsonData;
+import com.liuche.common.util.RequestContext;
 import com.liuche.order.dto.OrderDTO;
 import com.liuche.order.feign.AddressFeign;
 import com.liuche.order.feign.CouponFeign;
@@ -15,6 +19,7 @@ import com.liuche.order.mapper.ProductOrderMapper;
 import com.liuche.order.model.ProductOrder;
 import com.liuche.order.service.ProductOrderService;
 import com.liuche.order.vo.AddressInfoResp;
+import com.liuche.order.vo.CartItemVO;
 import com.liuche.order.vo.CartVO;
 import com.liuche.order.vo.CouponRecordVO;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author 70671
@@ -64,38 +70,43 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         String orderOutTradeNo = CommonUtil.getStringNumRandom(32);
         // 得到用户收货地址地址
         JsonData address = addressFeign.getOneAddress(dto.getAddressId());
-        if (address.getCode() != 0) {
-            throw new BusinessException(ExceptionCode.USER_ADDRESS_ERROR);
-        }
+        if (address.getCode() != 0) throw new BusinessException(ExceptionCode.USER_ADDRESS_ERROR);
         // 得到用户的收货地址
-        AddressInfoResp addressInfo = address.getData(new TypeReference<>() {
-        });
+        AddressInfoResp addressInfo = address.getData(new TypeReference<>() {});
         // 得到对应的优惠券
         ArrayList<CouponRecordVO> recordList = new ArrayList<>();
         // 批量获取 todo
         for (Long id : dto.getCouponRecordIds()) {
             JsonData jsonData = couponFeign.findUserCouponRecordById(id);
             if (jsonData.getCode() != 0) throw new BusinessException(ExceptionCode.COUPON_NO_EXITS);
-            CouponRecordVO recordVO = jsonData.getData(new TypeReference<>() {
-            });
+            CouponRecordVO recordVO = jsonData.getData(new TypeReference<>() {});
             recordList.add(recordVO);
         }
         this.checkRecord(recordList);
         // 从用户的购物车根据id得到要买的商品
-        Long[] productIds = dto.getProductIds();
-        List<Long> idList = Arrays.asList(productIds);
+        List<Long> idList = Arrays.asList(dto.getProductIds());
         JsonData cartProduct = productFeign.getUserCartProductByIds(idList);
         if (cartProduct.getCode() != 0) throw new BusinessException(ExceptionCode.PARAMS_ERROR, "商品不存在或已下架");
         // 验证商品是否可以消费
-        CartVO cartMini = cartProduct.getData(new TypeReference<>() {
-        });
-        log.info("cartMini->{}", cartMini.toString());
+        CartVO cartMini = cartProduct.getData(new TypeReference<>() {}); // 用户购买的商品
         this.checkCartMini(cartMini, dto, recordList); // 经过了这层说明该订单准确无误
         // 减购物车中的库存
         JsonData data = productFeign.reduceCartOps(idList);
         if (data.getCode()!=0) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR,"购物车商品状态报错");
         }
+        // 锁定优惠券和商品库存信息
+        couponFeign.lockCouponRecords(new LockCouponRecordDTO(RequestContext.getUserId(), Arrays.asList(dto.getCouponRecordIds()), orderOutTradeNo));
+        List<CartItemVO> cartItems = cartMini.getCartItems();
+        List<OrderItemDTO> list = cartItems.stream().map(item -> {
+            OrderItemDTO orderItemDTO = new OrderItemDTO();
+            orderItemDTO.setProductId(item.getProductId());
+            orderItemDTO.setBuyNum(item.getBuyNum());
+            return orderItemDTO;
+        }).collect(Collectors.toList());
+        productFeign.lockStockRecords(new LockProductDTO(orderOutTradeNo,list));
+        // 发送延迟队，判断持久未支付的订单
+
         return true;
     }
 
