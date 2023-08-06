@@ -2,6 +2,7 @@ package com.liuche.order.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.liuche.order.model.ProductOrder;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 70671
@@ -12,6 +13,8 @@ import com.liuche.order.model.ProductOrder;
 public interface ProductOrderMapper extends BaseMapper<ProductOrder> {
 
     String queryProductStatus(String outTradeNo);
+
+    int updateStateOrder(@Param("outTradeNo") String outTradeNo,@Param("state") String state);
 }
 
 

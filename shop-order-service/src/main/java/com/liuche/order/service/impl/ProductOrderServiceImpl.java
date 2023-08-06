@@ -1,7 +1,9 @@
 package com.liuche.order.service.impl;
+
 import java.util.Date;
 
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liuche.common.dto.LockCouponRecordDTO;
 import com.liuche.common.dto.LockProductDTO;
@@ -10,9 +12,11 @@ import com.liuche.common.enums.CouponStateEnum;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.enums.ProductOrderStateEnum;
 import com.liuche.common.exception.BusinessException;
+import com.liuche.common.model.OrderMessage;
 import com.liuche.common.util.CommonUtil;
 import com.liuche.common.util.JsonData;
 import com.liuche.common.util.RequestContext;
+import com.liuche.order.config.MQConfig;
 import com.liuche.order.dto.OrderDTO;
 import com.liuche.order.feign.AddressFeign;
 import com.liuche.order.feign.CouponFeign;
@@ -25,6 +29,8 @@ import com.liuche.order.vo.CartItemVO;
 import com.liuche.order.vo.CartVO;
 import com.liuche.order.vo.CouponRecordVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +56,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
     private ProductFeign productFeign;
     @Resource
     private RabbitTemplate rabbitTemplate;
+    @Resource
+    private MQConfig mqConfig;
 
     /**
      * service编写伪代码
@@ -77,14 +85,16 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         JsonData address = addressFeign.getOneAddress(dto.getAddressId());
         if (address.getCode() != 0) throw new BusinessException(ExceptionCode.USER_ADDRESS_ERROR);
         // 得到用户的收货地址
-        AddressInfoResp addressInfo = address.getData(new TypeReference<>() {});
+        AddressInfoResp addressInfo = address.getData(new TypeReference<>() {
+        });
         // 得到对应的优惠券
         ArrayList<CouponRecordVO> recordList = new ArrayList<>();
         // 批量获取 todo
         for (Long id : dto.getCouponRecordIds()) {
             JsonData jsonData = couponFeign.findUserCouponRecordById(id);
             if (jsonData.getCode() != 0) throw new BusinessException(ExceptionCode.COUPON_NO_EXITS);
-            CouponRecordVO recordVO = jsonData.getData(new TypeReference<>() {});
+            CouponRecordVO recordVO = jsonData.getData(new TypeReference<>() {
+            });
             recordList.add(recordVO);
         }
         this.checkRecord(recordList);
@@ -93,17 +103,18 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         JsonData cartProduct = productFeign.getUserCartProductByIds(idList);
         if (cartProduct.getCode() != 0) throw new BusinessException(ExceptionCode.PARAMS_ERROR, "商品不存在或已下架");
         // 验证商品是否可以消费
-        CartVO cartMini = cartProduct.getData(new TypeReference<>() {}); // 用户购买的商品
+        CartVO cartMini = cartProduct.getData(new TypeReference<>() {
+        }); // 用户购买的商品
         this.checkCartMini(cartMini, dto, recordList); // 经过了这层说明该订单准确无误
         // 减购物车中的库存
         JsonData data = productFeign.reduceCartOps(idList);
-        if (data.getCode()!=0) {
-            throw new BusinessException(ExceptionCode.PARAMS_ERROR,"购物车商品状态报错");
+        if (data.getCode() != 0) {
+            throw new BusinessException(ExceptionCode.PARAMS_ERROR, "购物车商品状态报错");
         }
         // 生成订单
         ProductOrder order = new ProductOrder();
         order.setOutTradeNo(orderOutTradeNo);
-        order.setState(ProductOrderStateEnum.CANCEL.name());
+        order.setState(ProductOrderStateEnum.NEW.name());
         order.setTotalAmount(dto.getTotalAmount());
         order.setPayAmount(dto.getRealPayAmount());
         order.setPayType(dto.getPayType());
@@ -122,10 +133,12 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
             orderItemDTO.setBuyNum(item.getBuyNum());
             return orderItemDTO;
         }).collect(Collectors.toList());
-        productFeign.lockStockRecords(new LockProductDTO(orderOutTradeNo,orderItemList));
+        productFeign.lockStockRecords(new LockProductDTO(orderOutTradeNo, orderItemList));
         // 发送延迟队，判断持久未支付的订单
-
-
+        OrderMessage orderMessage = new OrderMessage();
+        orderMessage.setOutTradeNo(orderOutTradeNo);
+        rabbitTemplate.convertAndSend(mqConfig.getEventExchange(), mqConfig.getOrderReleaseDelayRoutingKey(), orderMessage);
+        log.info("发送消息成功，{}", orderMessage);
         return true;
     }
 
@@ -135,7 +148,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         BigDecimal totalPrice = cartMini.getTotalPrice();
         BigDecimal realPrice;
         // 查看总价格是否正确不正确则两个realPrice相比较必不同
-        if (totalPrice.compareTo(dto.getTotalAmount())!=0) {
+        if (totalPrice.compareTo(dto.getTotalAmount()) != 0) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR, "价格变更，禁止该操作");
         }
         // 得到所有优惠券加起来满减的价格
@@ -150,10 +163,10 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         // 满减的情况
         if (totalPrice.compareTo(reduceMoney) < 0) {
             realPrice = BigDecimal.ZERO;
-        }else {
+        } else {
             realPrice = totalPrice.subtract(reduceMoney);
         }
-        if (realPrice.compareTo(dto.getRealPayAmount())!=0) {
+        if (realPrice.compareTo(dto.getRealPayAmount()) != 0) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR, "价格变更，禁止该操作");
         }
     }
@@ -176,6 +189,33 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
     @Override
     public String queryProductStatus(String outTradeNo) {
         return this.baseMapper.queryProductStatus(outTradeNo);
+    }
+
+    @Override
+    public boolean checkOrderMessage(OrderMessage msg) {
+        // 得到账单的状态
+        ProductOrder order = this.getOne(new QueryWrapper<ProductOrder>().eq("out_trade_no", msg.getOutTradeNo()));
+        if (ObjectUtils.isEmpty(order)) {
+            log.warn("该订单不存在");
+            return true;
+        }
+        String state = order.getState();
+        // 查看当前订单的状态
+        // 1.状态为NEW，查询远程支付系统看该账单支付了没，没有支付修改账单为取消账单CANCEL，支付了修改账单为已支付FINISH
+        if (StringUtils.isNotBlank(state) && state.equals(ProductOrderStateEnum.NEW.name())) {
+            // 远程查询：todo
+            String require = "FINISH";
+            if (require.length() != 0) { // 修改为已支付
+                log.warn("网络延迟太高，未及时更新，{}",msg.getOutTradeNo());
+                this.baseMapper.updateStateOrder(msg.getOutTradeNo(), ProductOrderStateEnum.PAY.name());
+            } else { // 修改为未支付
+                log.warn("该订单未支付，{}",msg.getOutTradeNo());
+                this.baseMapper.updateStateOrder(msg.getOutTradeNo(), ProductOrderStateEnum.CANCEL.name());
+            }
+            return true;
+        }
+        log.warn("该订单已取消，{}",msg.getOutTradeNo());
+        return true;
     }
 }
 

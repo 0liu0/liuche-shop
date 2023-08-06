@@ -28,6 +28,11 @@
 #         order_type,receiver_address,create_time,
 #         update_time,is_delete
     </sql>
+    <update id="updateStateOrder">
+        update product_order
+        set state=#{state}
+        where out_trade_no = #{outTradeNo}
+    </update>
     <select id="queryProductStatus" resultType="java.lang.String">
         select state from product_order where out_trade_no = #{outTradeNo}
     </select>

@@ -1,6 +1,7 @@
 package com.liuche.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.liuche.common.model.OrderMessage;
 import com.liuche.order.dto.OrderDTO;
 import com.liuche.order.model.ProductOrder;
 
@@ -14,4 +15,6 @@ public interface ProductOrderService extends IService<ProductOrder> {
     boolean confirmOrder(OrderDTO dto);
 
     String queryProductStatus(String outTradeNo);
+
+    boolean checkOrderMessage(OrderMessage msg);
 }

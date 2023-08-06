@@ -1,6 +1,7 @@
 package com.liuche.common.model;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * @Author 刘彻
@@ -10,6 +11,7 @@ import lombok.Data;
  * @Description: TODO
  */
 @Data
+@ToString
 public class OrderMessage {
 
     /**
