@@ -63,3 +63,7 @@ mqconfig:
   order_release_routing_key: order.release.routing.key
   # 消息过期时间,毫秒,测试改为15秒
   ttl: 10000
+# 支付宝配置
+alipay:
+  success_return_url: http://liuche17.xyz/
+  callback_url: http://liuche17.xyz/
