@@ -43,7 +43,14 @@ public enum ExceptionCode {
      */
     COUPON_OUT_OF_TIME(2700001,"优惠券已过期"),
     COUPON_NO_EXITS(2700002,"优惠券不存在"),
-    COUPON_NO_STOCK(2700002,"已被领取完，或已达最大限制");
+    COUPON_NO_STOCK(2700002,"已被领取完，或已达最大限制"),
+    /**
+     * 订单
+     */
+    ORDER_OUT_OF_PAY_TIME(280001,"订单已超时，不可支付"),
+    ORDER_INIT_FAILED(280002,"订单构建失败"),
+    ORDER_MESSAGE_QUERY_ERROR(280003,"查询订单失败")
+    ;
     private String msg;
     private int code;
 

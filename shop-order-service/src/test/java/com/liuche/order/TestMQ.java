@@ -20,9 +20,7 @@ public class TestMQ {
     private RabbitTemplate rabbitTemplate;
     @Test
     public void Test01() {
-        BigDecimal a = new BigDecimal("3");
-        BigDecimal b = new BigDecimal("3");
-        System.out.println(a.add(b));
+        System.out.println(System.currentTimeMillis());
     }
     @Test
     public void Test02() {

@@ -1,4 +1,5 @@
 package com.liuche.order.controller;
+import java.math.BigDecimal;
 
 import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
@@ -7,10 +8,13 @@ import com.alipay.api.CertAlipayRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.liuche.common.util.JsonData;
+import com.liuche.order.component.PayFactory;
 import com.liuche.order.config.AliPayConfig;
 import com.liuche.order.config.PayUrlConfig;
 import com.liuche.order.dto.OrderDTO;
+import com.liuche.order.enums.ProductOrderPayTypeEnum;
 import com.liuche.order.service.ProductOrderService;
+import com.liuche.order.vo.PayInfoVO;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +41,8 @@ public class ProductOrderController {
     private ProductOrderService productOrderService;
     @Resource
     private PayUrlConfig payUrlConfig;
+    @Resource
+    private PayFactory payFactory;
     @PostMapping("/add")
     public JsonData addOrder(@RequestBody OrderDTO dto) {
         boolean flag = productOrderService.confirmOrder(dto);
@@ -88,4 +94,21 @@ public class ProductOrderController {
             System.out.println("调用失败");
         }
     }
+    @ApiOperation("模拟查询用户支付信息")
+    @GetMapping("/test/pay/msg/{trade_no}")
+    public String queryPayInfo(@PathVariable String trade_no) throws AlipayApiException {
+        log.info("订单号:{}",trade_no);
+        PayInfoVO payInfoVO = new PayInfoVO();
+        payInfoVO.setOutTradeNo(trade_no);
+        payInfoVO.setPayFee(new BigDecimal("520"));
+        payInfoVO.setPayType(ProductOrderPayTypeEnum.ALIPAY.name());
+        payInfoVO.setClientType("");
+        payInfoVO.setTitle("");
+        payInfoVO.setDescription("");
+        payInfoVO.setOrderPayTimeoutMills(1791488543877L);
+        String s = payFactory.queryPaySuccess(payInfoVO);
+        log.info("查询得到的信息：{}",s);
+        return s;
+    }
+
 }

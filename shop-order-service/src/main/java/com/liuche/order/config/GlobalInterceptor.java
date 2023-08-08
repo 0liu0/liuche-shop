@@ -33,7 +33,7 @@ public class GlobalInterceptor implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/api/*/callback/**",
                         "/api/*/order/query_state/**",
-                        "/api/*/order/test/pay/**"
+                        "/api/*/order/test/**"
                 );
     }
 }
