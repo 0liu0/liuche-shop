@@ -31,7 +31,7 @@ public class GlobalInterceptor implements WebMvcConfigurer {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
-                        "/api/*/callback/**",
+                        "/api/*/order/callback/**",
                         "/api/*/order/query_state/**",
                         "/api/*/order/test/**"
                 );

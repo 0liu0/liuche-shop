@@ -66,4 +66,4 @@ mqconfig:
 # 支付宝配置
 alipay:
   success_return_url: http://liuche17.xyz/
-  callback_url: http://liuche17.xyz/
+  callback_url: http://4a94556a.r8.cpolar.top/api/v1/order/callback/alipay
