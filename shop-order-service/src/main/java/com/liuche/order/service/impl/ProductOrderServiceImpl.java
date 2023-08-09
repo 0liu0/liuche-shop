@@ -23,6 +23,7 @@ import com.liuche.common.util.RequestContext;
 import com.liuche.order.component.PayFactory;
 import com.liuche.order.config.MQConfig;
 import com.liuche.order.dto.OrderDTO;
+import com.liuche.order.dto.RepayOrderDTO;
 import com.liuche.order.feign.AddressFeign;
 import com.liuche.order.feign.CouponFeign;
 import com.liuche.order.feign.ProductFeign;
@@ -166,7 +167,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         payInfoVO.setDescription("没有描述");
         payInfoVO.setOutTradeNo(orderOutTradeNo);
         payInfoVO.setClientType(dto.getClientType());
-        payInfoVO.setOrderPayTimeoutMills(new Date(new Date().getTime() + OrderConstants.Order_Pay_Time).getTime());
+        payInfoVO.setOrderPayTimeoutMills(new Date(new Date().getTime() + OrderConstants.Order_Pay_Time).getTime() - 60*1000L);
         String form = payFactory.unifiedOrder(payInfoVO);
         if (StringUtils.isNotBlank(form)) {
             log.info("创建支付订单成功，订单号：{}", payInfoVO.getOutTradeNo());
@@ -313,6 +314,31 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         hashMap.put("currentData", voList);
         hashMap.put("totalRecord", orderPage.getTotal());
         return hashMap;
+    }
+
+    @Override
+    public JsonData repay(RepayOrderDTO dto) {
+        // 根据账单编号得到账单
+        ProductOrder order = this.baseMapper.selectOne(new QueryWrapper<ProductOrder>().eq("out_trade_no", dto.getOutTradeNo()));
+        if (ObjectUtils.isEmpty(order)) throw new BusinessException(ExceptionCode.ORDER_EXIST_NO);
+        // 判断该订单支付时间过没过期
+        Date now = new Date();
+        long pastTime = now.getTime() - order.getCreateTime().getTime() + 60*1000L - 1000*60*60*8L; // 留给时间在后端调用接口时候发生延迟
+        if (pastTime>OrderConstants.Order_Pay_Time) {
+            throw new BusinessException(ExceptionCode.ORDER_HAD_OUT_TIME);
+        }
+        order.setPayType(dto.getPayType());
+        // 再次申请支付
+        PayInfoVO payInfoVO = new PayInfoVO();
+        payInfoVO.setPayType(dto.getPayType());
+        payInfoVO.setPayFee(order.getPayAmount());
+        payInfoVO.setTitle("这是一个订单");
+        payInfoVO.setDescription("没有描述");
+        payInfoVO.setOutTradeNo(order.getOutTradeNo());
+        payInfoVO.setClientType(dto.getClientType());
+        payInfoVO.setOrderPayTimeoutMills(now.getTime() + OrderConstants.Order_Pay_Time - pastTime - 60*1000L);
+        String form = payFactory.unifiedOrder(payInfoVO);
+        return JsonData.ok(form);
     }
 }
 

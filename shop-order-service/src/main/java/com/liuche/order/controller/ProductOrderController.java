@@ -14,6 +14,7 @@ import com.liuche.order.component.PayFactory;
 import com.liuche.order.config.AliPayConfig;
 import com.liuche.order.config.PayUrlConfig;
 import com.liuche.order.dto.OrderDTO;
+import com.liuche.order.dto.RepayOrderDTO;
 import com.liuche.order.enums.ProductOrderPayTypeEnum;
 import com.liuche.order.service.ProductOrderService;
 import com.liuche.order.vo.PayInfoVO;
@@ -49,6 +50,27 @@ public class ProductOrderController {
     @PostMapping("/add")
     public void addOrder(@RequestBody OrderDTO dto, HttpServletResponse response) {
         JsonData jsonData = productOrderService.confirmOrder(dto);
+        if (jsonData.getCode() == 0) { // 创建订单成功
+            // 根据支付方式类型转到合适的支付
+            try {
+                response.setContentType("text/html;charset=UTF-8");
+                response.getWriter().write((String) jsonData.getData());
+                response.getWriter().flush();
+                response.getWriter().close();
+            } catch (Exception e) {
+                log.info("订单生成失败！");
+                throw new BusinessException(ExceptionCode.ORDER_INIT_FAILED);
+            }
+        } else { // 创建订单失败
+            // 返回给前端创建失败
+            throw new BusinessException(ExceptionCode.ORDER_INIT_FAILED);
+        }
+    }
+
+    @ApiOperation("用户重新支付接口")
+    @PostMapping("/repay")
+    public void repay(RepayOrderDTO dto,HttpServletResponse response) {
+        JsonData jsonData = productOrderService.repay(dto);
         if (jsonData.getCode() == 0) { // 创建订单成功
             // 根据支付方式类型转到合适的支付
             try {

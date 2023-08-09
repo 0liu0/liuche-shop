@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.liuche.common.model.OrderMessage;
 import com.liuche.common.util.JsonData;
 import com.liuche.order.dto.OrderDTO;
+import com.liuche.order.dto.RepayOrderDTO;
 import com.liuche.order.model.ProductOrder;
 import com.liuche.order.vo.OrderQueryVO;
 import com.liuche.order.vo.PayInfoVO;
@@ -26,4 +27,6 @@ public interface ProductOrderService extends IService<ProductOrder> {
     int updateOrderByTradeNo(String outTradeNo);
 
     HashMap<String, Object> queryByPage(Integer page, Integer size, String type);
+
+    JsonData repay(RepayOrderDTO dto);
 }

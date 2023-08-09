@@ -50,7 +50,9 @@ public enum ExceptionCode {
     ORDER_OUT_OF_PAY_TIME(280001,"订单已超时，不可支付"),
     ORDER_ITEM_SAVE_ERROR(280004,"订单项保存失败"),
     ORDER_INIT_FAILED(280002,"订单构建失败"),
-    ORDER_MESSAGE_QUERY_ERROR(280003,"查询订单失败")
+    ORDER_MESSAGE_QUERY_ERROR(280003,"查询订单失败"),
+    ORDER_EXIST_NO(280005,"订单不存在"),
+    ORDER_HAD_OUT_TIME(280005,"订单不存在")
     ;
     private String msg;
     private int code;
