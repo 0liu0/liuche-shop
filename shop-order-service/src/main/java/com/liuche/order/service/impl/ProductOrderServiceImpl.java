@@ -30,6 +30,7 @@ import com.liuche.order.mapper.ProductOrderItemMapper;
 import com.liuche.order.mapper.ProductOrderMapper;
 import com.liuche.order.model.ProductOrder;
 import com.liuche.order.model.ProductOrderItem;
+import com.liuche.order.service.ProductOrderItemService;
 import com.liuche.order.service.ProductOrderService;
 import com.liuche.order.vo.*;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +38,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +68,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
     private PayFactory payFactory;
     @Resource
     private ProductOrderItemMapper productOrderItemMapper;
+    @Resource
+    private ProductOrderItemService productOrderItemService;
 
     /**
      * service编写伪代码
@@ -86,6 +89,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
      * @param dto
      * @return
      */
+    @Override
+    @Transactional
     public JsonData confirmOrder(OrderDTO dto) {
         log.info("前端传来的信息：" + dto);
         // 创建订单id
@@ -128,6 +133,10 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         order.setOrderType("PROMOTION");
         order.setReceiverAddress(addressInfo.toString());
         this.save(order);
+        boolean flag = this.saveOrderItem(order, cartMini);
+        if (!flag) {
+            throw new BusinessException(ExceptionCode.ORDER_ITEM_SAVE_ERROR);
+        }
         // 锁定优惠券和商品库存信息
         couponFeign.lockCouponRecords(new LockCouponRecordDTO(RequestContext.getUserId(), Arrays.asList(dto.getCouponRecordIds()), orderOutTradeNo));
         List<CartItemVO> cartItems = cartMini.getCartItems();
@@ -146,7 +155,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         // 发送延迟队，判断持久未支付的订单
         OrderMessage orderMessage = new OrderMessage();
         orderMessage.setOutTradeNo(orderOutTradeNo);
-        log.info("订单号：{}",orderOutTradeNo);
+        log.info("订单号：{}", orderOutTradeNo);
         rabbitTemplate.convertAndSend(mqConfig.getEventExchange(), mqConfig.getOrderReleaseDelayRoutingKey(), orderMessage);
         log.info("发送消息成功，{}", orderMessage);
         // 调用支付宝扣费
@@ -160,12 +169,31 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         payInfoVO.setOrderPayTimeoutMills(new Date(new Date().getTime() + OrderConstants.Order_Pay_Time).getTime());
         String form = payFactory.unifiedOrder(payInfoVO);
         if (StringUtils.isNotBlank(form)) {
-            log.info("创建支付订单成功，订单号：{}",payInfoVO.getOutTradeNo());
+            log.info("创建支付订单成功，订单号：{}", payInfoVO.getOutTradeNo());
             return JsonData.ok(form);
-        }else {
+        } else {
             log.error("创建支付订单失败！");
             return JsonData.error("支付订单创建失败");
         }
+    }
+
+    private boolean saveOrderItem(ProductOrder order, CartVO cartMini) {
+        LinkedList<ProductOrderItem> list = new LinkedList<>();
+        // 遍历购物车中每一件商品
+        for (CartItemVO cartItem : cartMini.getCartItems()) {
+            ProductOrderItem item = new ProductOrderItem();
+            item.setProductOrderId(order.getId());
+            item.setOutTradeNo(order.getOutTradeNo());
+            item.setProductId(cartItem.getProductId());
+            item.setProductName(cartItem.getProductTitle());
+            item.setProductImg(cartItem.getProductImg());
+            item.setBuyNum(cartItem.getBuyNum());
+            item.setTotalAmount(cartItem.getTotalAmount());
+            item.setAmount(cartItem.getAmount());
+            list.add(item);
+        }
+        // 根据商品id，将用户购买的商品信息保存至product_order_item表中
+        return productOrderItemService.saveBatch(list);
     }
 
     private void checkCartMini(CartVO cartMini, OrderDTO dto, List<CouponRecordVO> recordList) {
@@ -237,7 +265,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
             payInfoVO.setPayType(order.getPayType());
             try {
                 require = payFactory.queryPaySuccess(payInfoVO);
-                log.info("require:{}",require);
+                log.info("require:{}", require);
             } catch (AlipayApiException e) {
                 log.warn("订单状态查询失败，订单号：{}", order.getOutTradeNo());
                 return false;
@@ -262,17 +290,17 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
 
     @Override
     public HashMap<String, Object> queryByPage(Integer page, Integer size, String type) {
-        Page<ProductOrder> p = new Page<>(page,size);
+        Page<ProductOrder> p = new Page<>(page, size);
         QueryWrapper<ProductOrder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id",RequestContext.getUserId());
-        queryWrapper.eq("state",type);
+        queryWrapper.eq("user_id", RequestContext.getUserId());
+        queryWrapper.eq("state", type);
         Page<ProductOrder> orderPage = this.baseMapper.selectPage(p, queryWrapper);
         // 得到orderId
         List<ProductOrder> records = orderPage.getRecords();
         List<OrderQueryVO> voList = CopyUtil.copyList(records, OrderQueryVO.class);
         List<Long> idList = voList.stream().map(OrderQueryVO::getId).collect(Collectors.toList());
         // 得到所有的orderItems
-        List<ProductOrderItem> orderItems = productOrderItemMapper.selectBatchIds(idList);
+        List<ProductOrderItem> orderItems = productOrderItemMapper.selectList(new QueryWrapper<ProductOrderItem>().in("product_order_id",idList));
         // 转换
         List<OrderItemQueryVO> itemQueryVOS = CopyUtil.copyList(orderItems, OrderItemQueryVO.class);
         // 将orderItems封装为map集合，productOrderId为键
@@ -281,9 +309,9 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
             vo.setItemList(map.get(vo.getId()));
         }
         HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("totalPage",orderPage.getPages());
-        hashMap.put("currentData",voList);
-        hashMap.put("totalRecord",orderPage.getTotal());
+        hashMap.put("totalPage", orderPage.getPages());
+        hashMap.put("currentData", voList);
+        hashMap.put("totalRecord", orderPage.getTotal());
         return hashMap;
     }
 }

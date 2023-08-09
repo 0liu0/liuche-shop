@@ -66,7 +66,7 @@ public class ProductOrderItem implements Serializable {
      * 购物项商品单价
      */
     @TableField(value = "amount")
-    private Long amount;
+    private BigDecimal amount;
 
     /**
      * 创建时间
