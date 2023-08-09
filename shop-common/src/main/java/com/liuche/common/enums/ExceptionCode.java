@@ -52,7 +52,9 @@ public enum ExceptionCode {
     ORDER_INIT_FAILED(280002,"订单构建失败"),
     ORDER_MESSAGE_QUERY_ERROR(280003,"查询订单失败"),
     ORDER_EXIST_NO(280005,"订单不存在"),
-    ORDER_HAD_OUT_TIME(280005,"订单不存在")
+    ORDER_HAD_OUT_TIME(280006,"订单超时"),
+    ORDER_TOKEN_NOT_EXIST(280007,"没有订单令牌"),
+    ORDER_TOKEN_NOT_MATE(280008,"token令牌不匹配"),
     ;
     private String msg;
     private int code;

@@ -52,4 +52,8 @@ public class OrderDTO {
      */
     @ApiModelProperty(value = "用户实际付款的价格",example = "520")
     private BigDecimal realPayAmount;
+    /**
+     * 用户下订单时的token令牌
+     */
+    private String token;
 }

@@ -12,4 +12,6 @@ public interface RedisConstant {
     String COUPON_LOCK = "shop:coupon:";
     // 用户购物车的前缀后面加上用户id
     String USER_CART = "shop:cart:";
+    // 用户下单前得到令牌token
+    String ORDER_TOKEN = "shop:order:token:";
 }

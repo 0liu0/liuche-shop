@@ -1,11 +1,15 @@
 package com.liuche.order.controller;
 
+import com.liuche.common.constants.RedisConstant;
+import com.liuche.common.util.CommonUtil;
 import com.liuche.common.util.JsonData;
+import com.liuche.common.util.RequestContext;
 import com.liuche.order.service.ProductOrderService;
 import com.liuche.order.vo.OrderQueryVO;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author 刘彻
@@ -29,6 +34,8 @@ import java.util.Set;
 public class OrderController {
     @Resource
     private ProductOrderService productOrderService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @PostMapping("/callback/alipay")
     @ApiOperation("订单支付成功回调接口")
     public void alipayReturn(HttpServletRequest request, HttpServletResponse response) {
@@ -46,6 +53,19 @@ public class OrderController {
         HashMap<String, Object> map = productOrderService.queryByPage(page,size,type);
         log.info("得到用户购物车实例");
         return JsonData.ok(map);
+    }
+
+    /**
+     * 得到token令牌
+     * @return
+     */
+    @ApiOperation("得到下订单的token令牌")
+    @GetMapping("/get/order-token")
+    public JsonData getOrderToken() {
+        String numRandom = CommonUtil.getStringNumRandom(16);
+        // 将值保存至redis中
+        stringRedisTemplate.opsForValue().set(RedisConstant.ORDER_TOKEN+ RequestContext.getUserId(),numRandom,30, TimeUnit.MINUTES);
+        return JsonData.ok(numRandom);
     }
 
     /**

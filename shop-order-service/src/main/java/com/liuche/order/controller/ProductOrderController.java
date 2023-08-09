@@ -7,9 +7,11 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.liuche.common.constants.RedisConstant;
 import com.liuche.common.enums.ExceptionCode;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
+import com.liuche.common.util.RequestContext;
 import com.liuche.order.component.PayFactory;
 import com.liuche.order.config.AliPayConfig;
 import com.liuche.order.config.PayUrlConfig;
@@ -20,11 +22,16 @@ import com.liuche.order.service.ProductOrderService;
 import com.liuche.order.vo.PayInfoVO;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -46,9 +53,19 @@ public class ProductOrderController {
     private PayUrlConfig payUrlConfig;
     @Resource
     private PayFactory payFactory;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
+    @ApiOperation("下订单接口")
     @PostMapping("/add")
     public void addOrder(@RequestBody OrderDTO dto, HttpServletResponse response) {
+        // 尝试得到order令牌
+        String orderToken = dto.getToken();
+        if (StringUtils.isBlank(orderToken)) throw new BusinessException(ExceptionCode.ORDER_TOKEN_NOT_EXIST);
+        // 判断令牌是否正确且删除令牌，使用lua脚本确保其原子性
+        String script = "if redis.call('get',KEYS[1]) == ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end";
+        Long result = stringRedisTemplate.execute(new DefaultRedisScript<>(script, Long.class), Collections.singletonList(RedisConstant.ORDER_TOKEN+RequestContext.getUserId()), orderToken);
+        if (result==0L) throw new BusinessException(ExceptionCode.ORDER_TOKEN_NOT_MATE);
         JsonData jsonData = productOrderService.confirmOrder(dto);
         if (jsonData.getCode() == 0) { // 创建订单成功
             // 根据支付方式类型转到合适的支付
