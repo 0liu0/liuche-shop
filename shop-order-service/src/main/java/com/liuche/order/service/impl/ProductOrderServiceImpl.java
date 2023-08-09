@@ -5,6 +5,7 @@ import java.util.Date;
 import com.alibaba.fastjson.TypeReference;
 import com.alipay.api.AlipayApiException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liuche.common.constants.OrderConstants;
 import com.liuche.common.dto.LockCouponRecordDTO;
@@ -16,6 +17,7 @@ import com.liuche.common.enums.ProductOrderStateEnum;
 import com.liuche.common.exception.BusinessException;
 import com.liuche.common.model.OrderMessage;
 import com.liuche.common.util.CommonUtil;
+import com.liuche.common.util.CopyUtil;
 import com.liuche.common.util.JsonData;
 import com.liuche.common.util.RequestContext;
 import com.liuche.order.component.PayFactory;
@@ -24,8 +26,10 @@ import com.liuche.order.dto.OrderDTO;
 import com.liuche.order.feign.AddressFeign;
 import com.liuche.order.feign.CouponFeign;
 import com.liuche.order.feign.ProductFeign;
+import com.liuche.order.mapper.ProductOrderItemMapper;
 import com.liuche.order.mapper.ProductOrderMapper;
 import com.liuche.order.model.ProductOrder;
+import com.liuche.order.model.ProductOrderItem;
 import com.liuche.order.service.ProductOrderService;
 import com.liuche.order.vo.*;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +41,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +65,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
     private MQConfig mqConfig;
     @Resource
     private PayFactory payFactory;
+    @Resource
+    private ProductOrderItemMapper productOrderItemMapper;
 
     /**
      * service编写伪代码
@@ -251,6 +258,33 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
     @Override
     public int updateOrderByTradeNo(String outTradeNo) {
         return this.baseMapper.updateOrderByTradeNo(outTradeNo);
+    }
+
+    @Override
+    public HashMap<String, Object> queryByPage(Integer page, Integer size, String type) {
+        Page<ProductOrder> p = new Page<>(page,size);
+        QueryWrapper<ProductOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id",RequestContext.getUserId());
+        queryWrapper.eq("state",type);
+        Page<ProductOrder> orderPage = this.baseMapper.selectPage(p, queryWrapper);
+        // 得到orderId
+        List<ProductOrder> records = orderPage.getRecords();
+        List<OrderQueryVO> voList = CopyUtil.copyList(records, OrderQueryVO.class);
+        List<Long> idList = voList.stream().map(OrderQueryVO::getId).collect(Collectors.toList());
+        // 得到所有的orderItems
+        List<ProductOrderItem> orderItems = productOrderItemMapper.selectBatchIds(idList);
+        // 转换
+        List<OrderItemQueryVO> itemQueryVOS = CopyUtil.copyList(orderItems, OrderItemQueryVO.class);
+        // 将orderItems封装为map集合，productOrderId为键
+        Map<Long, List<OrderItemQueryVO>> map = itemQueryVOS.stream().collect(Collectors.groupingBy(OrderItemQueryVO::getProductOrderId));
+        for (OrderQueryVO vo : voList) {
+            vo.setItemList(map.get(vo.getId()));
+        }
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("totalPage",orderPage.getPages());
+        hashMap.put("currentData",voList);
+        hashMap.put("totalRecord",orderPage.getTotal());
+        return hashMap;
     }
 }
 

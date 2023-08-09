@@ -41,4 +41,18 @@
     <select id="queryProductStatus" resultType="java.lang.String">
         select state from product_order where out_trade_no = #{outTradeNo}
     </select>
+    <select id="queryByPage" resultType="com.liuche.order.vo.OrderQueryVO">
+        select id,
+               out_trade_no,
+               state,
+               total_amount,
+               pay_amount,
+               pay_type,
+               nickname,
+               head_img,
+               user_id,
+               order_type,
+               receiver_address,
+               create_time from product_order
+    </select>
 </mapper>
