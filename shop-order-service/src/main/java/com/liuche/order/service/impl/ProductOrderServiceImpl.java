@@ -247,6 +247,11 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         log.warn("该订单已完成，{}", msg.getOutTradeNo());
         return true;
     }
+
+    @Override
+    public int updateOrderByTradeNo(String outTradeNo) {
+        return this.baseMapper.updateOrderByTradeNo(outTradeNo);
+    }
 }
 
 

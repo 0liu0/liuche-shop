@@ -15,6 +15,8 @@ public interface ProductOrderMapper extends BaseMapper<ProductOrder> {
     String queryProductStatus(String outTradeNo);
 
     int updateStateOrder(@Param("outTradeNo") String outTradeNo,@Param("state") String state);
+
+    int updateOrderByTradeNo(@Param("outTradeNo") String outTradeNo);
 }
 
 

@@ -33,6 +33,11 @@
         set state=#{state}
         where out_trade_no = #{outTradeNo}
     </update>
+    <update id="updateOrderByTradeNo">
+        update product_order
+        set state='PAY'
+        where out_trade_no = #{outTradeNo}
+    </update>
     <select id="queryProductStatus" resultType="java.lang.String">
         select state from product_order where out_trade_no = #{outTradeNo}
     </select>

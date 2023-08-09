@@ -1,11 +1,13 @@
 package com.liuche.order.controller;
 
+import com.liuche.order.service.ProductOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
@@ -23,13 +25,17 @@ import java.util.Set;
 @RequestMapping("/api/v1/order")
 @Slf4j
 public class OrderController {
+    @Resource
+    private ProductOrderService productOrderService;
     @PostMapping("/callback/alipay")
     @ResponseBody
-    public String alipayReturn(HttpServletRequest request, HttpServletResponse response) {
+    public void alipayReturn(HttpServletRequest request, HttpServletResponse response) {
         log.info("我运行了");
         Map<String, String> stringStringMap = convertRequestParamsToMap(request);
-        log.info("stringStringMap:{}",stringStringMap);
-        return "你好啊";
+        String out_trade_no = stringStringMap.get("out_trade_no");
+        // 将订单id改为已支付
+        productOrderService.updateOrderByTradeNo(out_trade_no);
+        log.info("订单状态已修改为已支付");
     }
 
     /**

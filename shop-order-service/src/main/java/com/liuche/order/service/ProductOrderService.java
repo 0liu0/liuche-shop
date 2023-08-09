@@ -19,4 +19,6 @@ public interface ProductOrderService extends IService<ProductOrder> {
     String queryProductStatus(String outTradeNo);
 
     boolean checkOrderMessage(OrderMessage msg);
+
+    int updateOrderByTradeNo(String outTradeNo);
 }
