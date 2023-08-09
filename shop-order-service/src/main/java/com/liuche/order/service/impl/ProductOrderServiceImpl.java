@@ -3,8 +3,10 @@ package com.liuche.order.service.impl;
 import java.util.Date;
 
 import com.alibaba.fastjson.TypeReference;
+import com.alipay.api.AlipayApiException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liuche.common.constants.OrderConstants;
 import com.liuche.common.dto.LockCouponRecordDTO;
 import com.liuche.common.dto.LockProductDTO;
 import com.liuche.common.dto.OrderItemDTO;
@@ -16,6 +18,7 @@ import com.liuche.common.model.OrderMessage;
 import com.liuche.common.util.CommonUtil;
 import com.liuche.common.util.JsonData;
 import com.liuche.common.util.RequestContext;
+import com.liuche.order.component.PayFactory;
 import com.liuche.order.config.MQConfig;
 import com.liuche.order.dto.OrderDTO;
 import com.liuche.order.feign.AddressFeign;
@@ -24,10 +27,7 @@ import com.liuche.order.feign.ProductFeign;
 import com.liuche.order.mapper.ProductOrderMapper;
 import com.liuche.order.model.ProductOrder;
 import com.liuche.order.service.ProductOrderService;
-import com.liuche.order.vo.AddressInfoResp;
-import com.liuche.order.vo.CartItemVO;
-import com.liuche.order.vo.CartVO;
-import com.liuche.order.vo.CouponRecordVO;
+import com.liuche.order.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +58,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
     private RabbitTemplate rabbitTemplate;
     @Resource
     private MQConfig mqConfig;
+    @Resource
+    private PayFactory payFactory;
 
     /**
      * service编写伪代码
@@ -77,7 +79,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
      * @param dto
      * @return
      */
-    public boolean confirmOrder(OrderDTO dto) {
+    public JsonData confirmOrder(OrderDTO dto) {
         log.info("前端传来的信息：" + dto);
         // 创建订单id
         String orderOutTradeNo = CommonUtil.getStringNumRandom(32);
@@ -137,9 +139,26 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         // 发送延迟队，判断持久未支付的订单
         OrderMessage orderMessage = new OrderMessage();
         orderMessage.setOutTradeNo(orderOutTradeNo);
+        log.info("订单号：{}",orderOutTradeNo);
         rabbitTemplate.convertAndSend(mqConfig.getEventExchange(), mqConfig.getOrderReleaseDelayRoutingKey(), orderMessage);
         log.info("发送消息成功，{}", orderMessage);
-        return true;
+        // 调用支付宝扣费
+        PayInfoVO payInfoVO = new PayInfoVO();
+        payInfoVO.setPayType(dto.getPayType());
+        payInfoVO.setPayFee(dto.getRealPayAmount());
+        payInfoVO.setTitle("这是一个订单");
+        payInfoVO.setDescription("没有描述");
+        payInfoVO.setOutTradeNo(orderOutTradeNo);
+        payInfoVO.setClientType(dto.getClientType());
+        payInfoVO.setOrderPayTimeoutMills(new Date(new Date().getTime() + OrderConstants.Order_Pay_Time).getTime());
+        String form = payFactory.unifiedOrder(payInfoVO);
+        if (StringUtils.isNotBlank(form)) {
+            log.info("创建支付订单成功，订单号：{}",payInfoVO.getOutTradeNo());
+            return JsonData.ok(form);
+        }else {
+            log.error("创建支付订单失败！");
+            return JsonData.error("支付订单创建失败");
+        }
     }
 
     private void checkCartMini(CartVO cartMini, OrderDTO dto, List<CouponRecordVO> recordList) {
@@ -203,18 +222,29 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         // 查看当前订单的状态
         // 1.状态为NEW，查询远程支付系统看该账单支付了没，没有支付修改账单为取消账单CANCEL，支付了修改账单为已支付FINISH
         if (StringUtils.isNotBlank(state) && state.equals(ProductOrderStateEnum.NEW.name())) {
-            // 远程查询：todo
-            String require = "FINISH";
-            if (require.length() != 0) { // 修改为已支付
-                log.warn("网络延迟太高，未及时更新，{}",msg.getOutTradeNo());
+            // 远程查询：
+            String require;
+            PayInfoVO payInfoVO = new PayInfoVO();
+            payInfoVO.setOutTradeNo(msg.getOutTradeNo());
+            payInfoVO.setClientType(order.getPayType());
+            payInfoVO.setPayType(order.getPayType());
+            try {
+                require = payFactory.queryPaySuccess(payInfoVO);
+                log.info("require:{}",require);
+            } catch (AlipayApiException e) {
+                log.warn("订单状态查询失败，订单号：{}", order.getOutTradeNo());
+                return false;
+            }
+            if (require != null) { // 修改为已支付
+                log.warn("网络延迟太高，未及时更新，{}", msg.getOutTradeNo());
                 this.baseMapper.updateStateOrder(msg.getOutTradeNo(), ProductOrderStateEnum.PAY.name());
             } else { // 修改为未支付
-                log.warn("该订单未支付，{}",msg.getOutTradeNo());
+                log.warn("该订单未支付，{}", msg.getOutTradeNo());
                 this.baseMapper.updateStateOrder(msg.getOutTradeNo(), ProductOrderStateEnum.CANCEL.name());
             }
             return true;
         }
-        log.warn("该订单已取消，{}",msg.getOutTradeNo());
+        log.warn("该订单已完成，{}", msg.getOutTradeNo());
         return true;
     }
 }

@@ -1,12 +1,14 @@
 package com.liuche.order.controller;
+
 import java.math.BigDecimal;
 
 import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
-import com.alipay.api.CertAlipayRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.liuche.common.enums.ExceptionCode;
+import com.liuche.common.exception.BusinessException;
 import com.liuche.common.util.JsonData;
 import com.liuche.order.component.PayFactory;
 import com.liuche.order.config.AliPayConfig;
@@ -43,16 +45,27 @@ public class ProductOrderController {
     private PayUrlConfig payUrlConfig;
     @Resource
     private PayFactory payFactory;
+
     @PostMapping("/add")
-    public JsonData addOrder(@RequestBody OrderDTO dto) {
-        boolean flag = productOrderService.confirmOrder(dto);
-        if (flag) { // 创建订单成功
+    public void addOrder(@RequestBody OrderDTO dto, HttpServletResponse response) {
+        JsonData jsonData = productOrderService.confirmOrder(dto);
+        if (jsonData.getCode() == 0) { // 创建订单成功
             // 根据支付方式类型转到合适的支付
-        }else { // 创建订单失败
+            try {
+                response.setContentType("text/html;charset=UTF-8");
+                response.getWriter().write((String) jsonData.getData());
+                response.getWriter().flush();
+                response.getWriter().close();
+            } catch (Exception e) {
+                log.info("订单生成失败！");
+                throw new BusinessException(ExceptionCode.ORDER_INIT_FAILED);
+            }
+        } else { // 创建订单失败
             // 返回给前端创建失败
+            throw new BusinessException(ExceptionCode.ORDER_INIT_FAILED);
         }
-        return JsonData.ok("订单成功生成！");
     }
+
     @GetMapping("/query_state/{outTradeNo}")
     public JsonData queryState(@PathVariable String outTradeNo) {
         // 根据ID查询订单状态
@@ -66,7 +79,7 @@ public class ProductOrderController {
         HashMap<Object, Object> content = new HashMap<>();
         //商户订单号,64个字符以内、可包含字母、数字、下划线；需保证在商户端不重复
         String no = UUID.randomUUID().toString();
-        log.info("订单号:{}",no);
+        log.info("订单号:{}", no);
         content.put("out_trade_no", no);
         content.put("product_code", "FAST_INSTANT_TRADE_PAY");
         //订单总金额，单位为元，精确到小数点后两位
@@ -83,7 +96,7 @@ public class ProductOrderController {
         request.setNotifyUrl(payUrlConfig.getAlipayCallbackURL());
         request.setReturnUrl(payUrlConfig.getAlipaySuccessReturnURL());
         AlipayTradePagePayResponse responseAli = alipayClient.pageExecute(request);
-        if(responseAli.isSuccess()){
+        if (responseAli.isSuccess()) {
             System.out.println("调用成功");
             String form = responseAli.getBody();
             response.setContentType("text/html;charset=UTF-8");
@@ -97,7 +110,7 @@ public class ProductOrderController {
     @ApiOperation("模拟查询用户支付信息")
     @GetMapping("/test/pay/msg/{trade_no}")
     public String queryPayInfo(@PathVariable String trade_no) throws AlipayApiException {
-        log.info("订单号:{}",trade_no);
+        log.info("订单号:{}", trade_no);
         PayInfoVO payInfoVO = new PayInfoVO();
         payInfoVO.setOutTradeNo(trade_no);
         payInfoVO.setPayFee(new BigDecimal("520"));
@@ -107,8 +120,7 @@ public class ProductOrderController {
         payInfoVO.setDescription("");
         payInfoVO.setOrderPayTimeoutMills(1791488543877L);
         String s = payFactory.queryPaySuccess(payInfoVO);
-        log.info("查询得到的信息：{}",s);
+        log.info("查询得到的信息：{}", s);
         return s;
     }
-
 }

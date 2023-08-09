@@ -2,8 +2,10 @@ package com.liuche.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liuche.common.model.OrderMessage;
+import com.liuche.common.util.JsonData;
 import com.liuche.order.dto.OrderDTO;
 import com.liuche.order.model.ProductOrder;
+import com.liuche.order.vo.PayInfoVO;
 
 /**
 * @author 70671
@@ -12,7 +14,7 @@ import com.liuche.order.model.ProductOrder;
 */
 public interface ProductOrderService extends IService<ProductOrder> {
 
-    boolean confirmOrder(OrderDTO dto);
+    JsonData confirmOrder(OrderDTO dto);
 
     String queryProductStatus(String outTradeNo);
 

@@ -61,12 +61,12 @@ public class AliPayStrategy implements PayStrategy{
             request.setNotifyUrl(payUrlConfig.getAlipayCallbackURL());
             request.setReturnUrl(payUrlConfig.getAlipaySuccessReturnURL());
             AlipayTradePagePayResponse responseAli = alipayClient.pageExecute(request);
-            form = null;
             if(responseAli.isSuccess()){
                 System.out.println("调用成功");
                 form = responseAli.getBody();
             } else {
-                System.out.println("调用失败");
+                log.info("调用失败");
+                throw new BusinessException(ExceptionCode.ORDER_INIT_FAILED);
             }
         } catch (AlipayApiException e) {
             throw new BusinessException(ExceptionCode.PARAMS_ERROR);
@@ -90,15 +90,14 @@ public class AliPayStrategy implements PayStrategy{
         try {
             response = alipayClient.execute(request);
             if(response.isSuccess()){
-                log.info("调用成功");
                 log.info("成功信息：{}",response.getBody());
             } else {
-                log.error("调用失败");
                 log.info("失败信息：{}",response.getBody());
+                return null;
             }
         } catch (AlipayApiException e) {
             throw new BusinessException(ExceptionCode.ORDER_MESSAGE_QUERY_ERROR);
         }
-        return response.getBody();
+        return response.getTradeStatus();
     }
 }

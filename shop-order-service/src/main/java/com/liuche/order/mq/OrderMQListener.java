@@ -26,12 +26,12 @@ public class OrderMQListener {
     @Resource
     private ProductOrderService productOrderService;
 
-    @RabbitHandler
-    public void releaseOrderStr(String str, Message message, Channel channel) throws IOException {
-        log.info("监听到消息：消息内容->{}", str);
-        long deliveryTag = message.getMessageProperties().getDeliveryTag();
-        channel.basicAck(deliveryTag, false);
-    }
+//    @RabbitHandler
+//    public void releaseOrderStr(String str, Message message, Channel channel) throws IOException {
+//        log.info("监听到消息：消息内容->{}", str);
+//        long deliveryTag = message.getMessageProperties().getDeliveryTag();
+//        channel.basicAck(deliveryTag, false);
+//    }
 
     @RabbitHandler
     public void releaseOrder(OrderMessage msg, Message message, Channel channel) throws IOException {
@@ -42,13 +42,17 @@ public class OrderMQListener {
                 log.warn("消息体没有内容哦");
                 channel.basicAck(deliveryTag, false);
             } else {
+                log.info("恭喜客官来到这一层");
                 boolean flag = productOrderService.checkOrderMessage(msg);
-                if (flag) channel.basicAck(deliveryTag, false);
-                else channel.basicReject(deliveryTag, true);
+                if (flag) {
+                    channel.basicAck(deliveryTag, false);
+                } else {
+                    channel.basicReject(deliveryTag, true);
+                }
             }
         } catch (Exception e) {
             // 把记录打印在数据库中方便后续排查 todo
-            log.error("出现异常:{}",e);
+            log.error("出现异常:{}", e);
             channel.basicAck(deliveryTag, false);
         }
     }

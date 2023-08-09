@@ -1,6 +1,8 @@
 package com.liuche.order.component;
 
 import com.alipay.api.AlipayApiException;
+import com.liuche.common.enums.ExceptionCode;
+import com.liuche.common.exception.BusinessException;
 import com.liuche.order.enums.ProductOrderPayTypeEnum;
 import com.liuche.order.vo.PayInfoVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,20 +26,23 @@ public class PayFactory {
     private PayStrategy weixinPayStrategy;
     private PayStrategyContext context;
 
-    public String unifiedOrder(PayInfoVO payInfoVO) throws AlipayApiException {
+    public String unifiedOrder(PayInfoVO payInfoVO) {
         // 得到用户的支付类型
         String payType = payInfoVO.getPayType();
         // 根据用户选择的类型选择支付类型
         String response = null;
-
-        if (payType.equals(ProductOrderPayTypeEnum.ALIPAY.name())) {
-            // 使用支付宝支付
-            context = new PayStrategyContext(aliPayStrategy);
-            response = context.unifiedOrder(payInfoVO);
-        } else if (payType.equals(ProductOrderPayTypeEnum.WECHAT.name())) {
-            // 使用微信支付 暂未接入，待完善 todo
-            context = new PayStrategyContext(weixinPayStrategy);
-            response = context.unifiedOrder(payInfoVO);
+        try {
+            if (payType.equals(ProductOrderPayTypeEnum.ALIPAY.name())) {
+                // 使用支付宝支付
+                context = new PayStrategyContext(aliPayStrategy);
+                response = context.unifiedOrder(payInfoVO);
+            } else if (payType.equals(ProductOrderPayTypeEnum.WECHAT.name())) {
+                // 使用微信支付 暂未接入，待完善 todo
+                context = new PayStrategyContext(weixinPayStrategy);
+                response = context.unifiedOrder(payInfoVO);
+            }
+        } catch (AlipayApiException e) {
+            throw new BusinessException(ExceptionCode.ORDER_INIT_FAILED);
         }
         return response;
     }

@@ -1,5 +1,7 @@
 package com.liuche.order;
 
+import com.liuche.common.model.OrderMessage;
+import com.liuche.common.util.CommonUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,10 +22,12 @@ public class TestMQ {
     private RabbitTemplate rabbitTemplate;
     @Test
     public void Test01() {
-        System.out.println(System.currentTimeMillis());
+        System.out.println(CommonUtil.getStringNumRandom(32));
     }
     @Test
     public void Test02() {
-        rabbitTemplate.convertAndSend("order.event.exchange","order.release.delay.routing.key","你好，我是帅帅");
+        OrderMessage orderMessage = new OrderMessage();
+        orderMessage.setOutTradeNo("520520520520");
+        rabbitTemplate.convertAndSend("order.event.exchange","order.release.delay.routing.key",orderMessage);
     }
 }
